@@ -1,0 +1,219 @@
+#!/usr/bin/env python
+
+import argparse
+import ConfigParser
+import sys
+import os
+
+# We're assuming '#' is valid to start a comment in all the configs we are amending
+# which so far is true.
+_MIXIN_HEADER = "# ----------------- BEGIN MIX-IN DEFINITIONS -----------------\n"
+_MIXIN_FOOTER = "# ------------------ END MIX-IN DEFINITIONS ------------------\n"
+_MIXIN_SOURCE = "# Source: "
+_MIXIN_LINE   = "##############################################################\n"
+
+# These are the set of product configuration files that are modified by mixins.
+# If they are named something else in the actual product directory, the mixin spec
+# file should setup the mapping in the "mapping" section
+_FILE_LIST = ["BoardConfig.mk", "init.rc", "init.recovery.rc", "fstab", "product.mk",
+    "ueventd.rc", "AndroidBoard.mk"]
+
+def warning(s):
+    sys.stderr.write(s + "\n");
+    sys.stderr.flush()
+
+
+def die(s):
+    warning(s)
+    assert False
+
+
+def read_spec_file(specfile, cp=None):
+    """read a mixin spec file and return a ConfigParser object with its
+    definitions. If a ConfigParser is supplied as an argument, it will
+    be augmented with the new data"""
+    if not cp:
+        cp = ConfigParser.SafeConfigParser()
+
+    with open(specfile) as fp:
+        cp.readfp(fp)
+
+    return cp
+
+
+def read_mixin_tree(basedir, mixin_tree=None):
+    """return a dictionary mapping mixin groups found in a particular
+    basedir with a dictionary mapping option names to the directory
+    containing their configuration fragments"""
+
+    if not mixin_tree:
+        mixin_tree = {}
+
+    groups = [i for i in os.listdir(basedir) if not i.startswith(".")]
+    for group in groups:
+        if group not in mixin_tree:
+            mixin_tree[group] = {}
+        groupdir = os.path.join(basedir, group)
+        options = [i for i in os.listdir(groupdir) if not i.startswith(".")]
+        for option in options:
+            optiondir = os.path.join(groupdir, option)
+            if option in mixin_tree[group]:
+                warning("overriding existing option {} for group {}".format(mixin_tree[group][option], group))
+            mixin_tree[group][option] = optiondir
+    return mixin_tree
+
+
+def validate_selections(selections, mixin_tree):
+    """enforce that the set of mixin selections is sane by checking
+    the following:
+    1) For each group selected, verify that the group exists and that
+    the particular selection made within that group also exists
+    2) If any groups exist for which there is no selection made, make
+    the default selection for that group. If no default exists, report an
+    error.
+    The selections list may be altered by this function to include
+    group default selections"""
+
+    groups_seen = []
+
+    for (group, option) in selections:
+        if group in groups_seen:
+            die("selection already made for group {}".format(group))
+        groups_seen.append(group)
+
+        if group not in mixin_tree:
+            die("no definition found for group {}".format(group))
+
+        if option not in mixin_tree[group]:
+            die("unknown option {} for group {}".format(option, group))
+
+    unspecified_groups = set(mixin_tree.keys()) - set(groups_seen)
+    for group in unspecified_groups:
+        warning("group {} exists but not specified, using default option".format(group))
+        if "default" not in mixin_tree[group]:
+            die("group {} doesn't have a default option!".format(group))
+        selections.append((group, "default"))
+
+
+def clear_file(dest):
+    """Clear out any existing mixin defintions from the specified file; after this
+    is done only the header/footer will remain. If the dest file never had anything
+    in it, add the header/footer. If the dest file didn't exist, create it."""
+    output = []
+    in_mixin = False
+    ever_in_mixin = False
+
+    if os.path.exists(dest):
+        with open(dest) as dfile:
+            dlines = dfile.readlines()
+    else:
+        dlines = []
+
+    for line in dlines:
+        if not in_mixin:
+            output.append(line)
+            if line == _MIXIN_HEADER:
+                in_mixin = True
+                ever_in_mixin = True
+        else:
+            if line == _MIXIN_FOOTER:
+                output.append(line)
+                in_mixin = False
+
+    if in_mixin:
+        # header with no footer? ok whatever
+        output.append(_MIXIN_FOOTER)
+
+    if not ever_in_mixin:
+        output.append(_MIXIN_HEADER)
+        output.append(_MIXIN_FOOTER)
+
+    with open(dest, "w") as dfile:
+        dfile.writelines(output)
+
+
+def amend_file(dest, src):
+    """Augment the destination file with data from the source file provided.
+    Assumes we have run clear_file() on dest at some point beforehand"""
+    with open(src) as sfile:
+        slines = sfile.readlines()
+    with open(dest) as dfile:
+        dlines = dfile.readlines()
+
+    # sanity check: make sure there are NO references to paths inside
+    # the mixins base directory structure as that may not be available
+    # at build time.
+    sbase = os.path.dirname(src)
+    for line in slines:
+        if sbase in line:
+            die("build-time references to paths inside mixin directory are not allowed; {} is invalid".format(src))
+
+    output = []
+    for line in dlines:
+        if line == _MIXIN_FOOTER:
+            output.append(_MIXIN_LINE)
+            output.append(_MIXIN_SOURCE + src + "\n")
+            output.append(_MIXIN_LINE)
+            output.extend(slines)
+        output.append(line)
+
+    with open(dest, "w") as dfile:
+        dfile.writelines(output)
+
+
+def process_spec_file(specfile):
+    cp = read_spec_file(specfile)
+    basedir = cp.get("main", "mixinsdir")
+    selections = cp.items("groups")
+    mixin_tree = read_mixin_tree(basedir)
+    product_dir = os.path.dirname(specfile)
+    file_map = {}
+
+    # Set up the file map since the config files in the product directory
+    # may have slightly different names than what is in _FILE_LIST
+    for fname in _FILE_LIST:
+        if cp.has_option("mapping", fname):
+            file_map[fname] = cp.get("mapping", fname)
+        else:
+            file_map[fname] = fname
+
+    # After this, all default selections should be populated
+    # and the selections should be sane
+    validate_selections(selections, mixin_tree)
+
+    for src, dest in file_map.iteritems():
+        dest_fn = os.path.join(product_dir, dest)
+        clear_file(dest_fn)
+        # dest_fn guaranteed to exist at this point and have the mixin
+        # header/footer with no data in between
+
+        # Now check all the groups to see if they have a configuration
+        # fragment to insert into the destination file
+        for group, option in selections:
+            optdir = mixin_tree[group][option]
+            src_fn = os.path.join(optdir, src)
+
+            if os.path.exists(src_fn):
+                amend_file(dest_fn, src_fn)
+
+
+def find_all_spec_files(basepath):
+    """find all the mixin spec files underneath the specified
+    directory (typically device/) and return a list of paths to
+    them"""
+    ret = []
+    for root, dirs, files in os.walk(basepath):
+        if "mixins.spec" in files:
+            ret.append(os.path.join(root,"mixins.spec"))
+    return ret
+
+def main():
+    sfiles = find_all_spec_files("device/intel")
+
+    for sf in sfiles:
+        print "Processing", sf
+        process_spec_file(sf)
+
+if __name__ == "__main__":
+    main()
+
