@@ -4,6 +4,7 @@ import argparse
 import ConfigParser
 import sys
 import os
+import re
 
 # We're assuming '#' is valid to start a comment in all the configs we are amending
 # which so far is true.
@@ -132,7 +133,7 @@ def clear_file(dest):
         dfile.writelines(output)
 
 
-def amend_file(dest, src):
+def amend_file(dest, src, mixinsbase):
     """Augment the destination file with data from the source file provided.
     Assumes we have run clear_file() on dest at some point beforehand"""
     with open(src) as sfile:
@@ -140,13 +141,12 @@ def amend_file(dest, src):
     with open(dest) as dfile:
         dlines = dfile.readlines()
 
-    # sanity check: make sure there are NO references to paths inside
-    # the mixins base directory structure as that may not be available
-    # at build time.
-    sbase = os.path.dirname(src)
+    # sanity checks
     for line in slines:
-        if sbase in line:
+        if mixinsbase in line:
             die("build-time references to paths inside mixin directory are not allowed; {} is invalid".format(src))
+        if re.search("PRODUCT_.*[:][=]", line):
+            warning("Non-accumulative PRODUCT_ assignment '{}' found in {}".format(line.strip(), src))
 
     output = []
     for line in dlines:
@@ -194,7 +194,7 @@ def process_spec_file(specfile):
             src_fn = os.path.join(optdir, src)
 
             if os.path.exists(src_fn):
-                amend_file(dest_fn, src_fn)
+                amend_file(dest_fn, src_fn, basedir)
 
 
 def find_all_spec_files(basepath):
