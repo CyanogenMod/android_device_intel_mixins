@@ -19,6 +19,9 @@ _MIXIN_LINE   = "##############################################################\
 _FILE_LIST = ["BoardConfig.mk", "init.rc", "init.recovery.rc", "fstab", "product.mk",
     "ueventd.rc", "AndroidBoard.mk"]
 
+_PRODUCT_SPEC_FN = "mixins.spec"
+_GROUP_SPEC_FN = "mixinfo.spec"
+
 def warning(s):
     sys.stderr.write(s + "\n");
     sys.stderr.flush()
@@ -45,22 +48,40 @@ def read_spec_file(specfile, cp=None):
 def read_mixin_tree(basedir, mixin_tree=None):
     """return a dictionary mapping mixin groups found in a particular
     basedir with a dictionary mapping option names to the directory
-    containing their configuration fragments"""
+    containing their configuration fragments as well as other group-level
+    metadata"""
 
     if not mixin_tree:
         mixin_tree = {}
 
     groups = [i for i in os.listdir(basedir) if not i.startswith(".")]
     for group in groups:
-        if group not in mixin_tree:
-            mixin_tree[group] = {}
+        assert group not in mixin_tree
+        mixin_tree[group] = {}
         groupdir = os.path.join(basedir, group)
+        mixin_tree[group]["groupdir"] = groupdir
+        mixin_tree[group]["options"] = {}
+        mixin_tree[group]["deps"] = []
+
+        # Check for a mixinfo file in the root of the group directory
+        # This is for metadata about the group as a whole. Its presence
+        # is optional, many groups won't need it.
+        mixinfo = os.path.join(groupdir, _GROUP_SPEC_FN)
+        if os.path.exists(mixinfo):
+            cp = read_spec_file(mixinfo)
+
+            # "mixinfo.deps" is the set of groups which must be inherited
+            # prior to inheriting this mixin, typically because we need the
+            # other groups to define certain variables for us
+            if cp.has_option("mixinfo", "deps"):
+                mixin_tree[group]["deps"] = cp.get("mixinfo", "deps").split()
+
         options = [i for i in os.listdir(groupdir) if not i.startswith(".")]
         for option in options:
             optiondir = os.path.join(groupdir, option)
-            if option in mixin_tree[group]:
-                warning("overriding existing option {} for group {}".format(mixin_tree[group][option], group))
-            mixin_tree[group][option] = optiondir
+            assert option not in mixin_tree[group]["options"]
+            mixin_tree[group]["options"][option] = optiondir
+
     return mixin_tree
 
 
@@ -85,13 +106,20 @@ def validate_selections(selections, mixin_tree):
         if group not in mixin_tree:
             die("no definition found for group {}".format(group))
 
-        if option not in mixin_tree[group]:
+        if option not in mixin_tree[group]["options"]:
             die("unknown option {} for group {}".format(option, group))
 
+        deps = mixin_tree[group]["deps"]
+        for dep in deps:
+            if dep not in groups_seen:
+                die("group {} requires that group {} be selected first".format(group, dep))
+
+    # The spec file may have omitted some groups. If so, pull in their
+    # default options, or generate an error if there is no default
     unspecified_groups = set(mixin_tree.keys()) - set(groups_seen)
     for group in unspecified_groups:
         warning("group {} exists but not specified, using default option".format(group))
-        if "default" not in mixin_tree[group]:
+        if "default" not in mixin_tree[group]["options"]:
             die("group {} doesn't have a default option!".format(group))
         selections.append((group, "default"))
 
@@ -190,7 +218,7 @@ def process_spec_file(specfile):
         # Now check all the groups to see if they have a configuration
         # fragment to insert into the destination file
         for group, option in selections:
-            optdir = mixin_tree[group][option]
+            optdir = mixin_tree[group]["options"][option]
             src_fn = os.path.join(optdir, src)
 
             if os.path.exists(src_fn):
@@ -204,7 +232,7 @@ def find_all_spec_files(basepath):
     ret = []
     for root, dirs, files in os.walk(basepath):
         if "mixins.spec" in files:
-            ret.append(os.path.join(root,"mixins.spec"))
+            ret.append(os.path.join(root, _PRODUCT_SPEC_FN))
     return ret
 
 def main():
