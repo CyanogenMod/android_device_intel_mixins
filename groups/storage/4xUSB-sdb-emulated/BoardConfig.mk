@@ -1,0 +1,1 @@
+../BoardConfig-usb.mk

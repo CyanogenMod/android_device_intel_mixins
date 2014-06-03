@@ -1,0 +1,1 @@
+../BoardConfig-sdcard-usb.mk

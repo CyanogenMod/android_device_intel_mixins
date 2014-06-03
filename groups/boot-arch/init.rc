@@ -1,0 +1,34 @@
+on init
+    # Contains unit-specific data provided during device provisioning.
+    # This includes factory.prop which is automatically read by init
+    mkdir /factory 0770 system system
+
+    # Contains vendor-specific branding and applications
+    mkdir /oem 0770 system system
+
+    # Android creates by-name disk links with the disk controller
+    # in the generated path, so that the names pulled out of the GPT
+    # can be associated with the correct disk. Create a shortcut to
+    # /dev/block/by-name so that we can use the same fstabs everywhere.
+    symlink /dev/block/platform/80860F14:00/by-name /dev/block/by-name
+
+on fs
+    # ro.boot.hardware = TARGET_PRODUCT (set in kernel command line
+    # as androidboot.hardware). Mount all the filesystems as specified
+    # in the fstab.
+    mount_all /fstab
+
+service pstore-clean /system/bin/pstore-clean
+    user root
+    group system
+    class late_start
+    oneshot
+
+service setup_fs /system/bin/setup_fs \
+        /dev/block/by-name/android_data \
+        /dev/block/by-name/android_cache
+    class core
+    user root
+    group root
+    oneshot
+

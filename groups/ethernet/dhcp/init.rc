@@ -1,0 +1,7 @@
+service dhcpcd-eth0 /system/bin/dhcpcd -bd eth0
+    disabled
+    oneshot
+
+on device-added-/dev/eth0
+    start dhcpcd-eth0
+
