@@ -221,8 +221,18 @@ def process_spec_file(specfile):
             optdir = mixin_tree[group]["options"][option]
             src_fn = os.path.join(optdir, src)
 
-            if os.path.exists(src_fn):
-                amend_file(dest_fn, src_fn, basedir)
+            # Any given file can have multiple fragments. We first
+            # look for <frag>.1, <frag>.2, ... <frag>.9, <frag>
+            # This is useful for when several mixin options have mostly
+            # the same data except for maybe a few lines; you can
+            # avoid copypasting a lot of stuff by using this feature
+            # and symbolic links for the common bits.
+            frags = [src_fn + "." + str(i) for i in range(10)]
+            frags.append(src_fn)
+
+            for frag in frags:
+                if os.path.exists(frag):
+                    amend_file(dest_fn, frag, basedir)
 
 
 def find_all_spec_files(basepath):
