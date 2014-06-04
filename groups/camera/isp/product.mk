@@ -14,9 +14,13 @@ PRODUCT_PACKAGES += \
     YGamma_DIS5MP.bin \
     Mor_8MP_8BQ.txt
 
+ifeq ($(TARGET_BOARD_PLATFORM),)
+    $(error Please define TARGET_BOARD_PLATFORM in product-level Makefile)
+endif
+
 # libcamera
 PRODUCT_PACKAGES += \
-    camera.gmin
+    camera.$(TARGET_BOARD_PLATFORM)
 
 # ISP Firmware
 PRODUCT_PACKAGES += \
