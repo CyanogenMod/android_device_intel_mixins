@@ -1,0 +1,6 @@
+# thermal daemon runs as system user and it depends on these nodes
+/sys/devices/virtual/thermal/cooling_device*    cur_state       0644 system system
+/sys/devices/system/cpu/intel_pstate            max_perf_pct    0644 system system
+/sys/devices/system/cpu/intel_pstate            min_perf_pct    0644 system system
+/sys/devices/system/cpu/intel_pstate            no_turbo        0644 system system
+
