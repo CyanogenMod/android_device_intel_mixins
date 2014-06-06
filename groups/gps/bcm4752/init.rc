@@ -1,0 +1,19 @@
+on post-fs-data
+    # Create data folder for GPS
+    mkdir /data/gps 0770 gps system
+
+on boot
+    # Enable Power control for GPS chip using RFKILL driver
+    insmod /system/lib/modules/rfkill-gpio.ko
+
+service gpsd /system/bin/gpsd -c /system/etc/gps.xml
+    class main
+    user gps
+    group system inet radio sdcard_rw
+
+service gpscerd /system/bin/gpscerd /data/gps/gps.cer
+    class main
+    user system
+    group system
+    oneshot
+

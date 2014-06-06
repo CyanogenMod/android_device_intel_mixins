@@ -1,0 +1,5 @@
+GPS_CHIP_VENDOR := bcm
+GPS_CHIP := 4752
+GPS_SDK := false
+GPS_USES_EXTERNAL_LNA := false
+
