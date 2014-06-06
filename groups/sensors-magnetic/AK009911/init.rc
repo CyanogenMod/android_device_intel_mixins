@@ -1,0 +1,8 @@
+on boot
+    insmod /system/lib/modules/ak09911.ko
+
+on early-init
+    setprop ro.iio.magn.vendor Asahi Kasei
+    setprop ro.iio.magn.max_range 9800
+    setprop ro.iio.magn.resolution 0.06
+    setprop ro.iio.magn.power 2.4

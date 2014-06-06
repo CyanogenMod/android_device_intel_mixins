@@ -1,0 +1,9 @@
+on boot
+    insmod /system/lib/modules/bmg160.ko
+
+on early-init
+    setprop ro.iio.anglvel.name BMG160 Gyroscope
+    setprop ro.iio.anglvel.vendor Bosch Sensortec
+    setprop ro.iio.anglvel.max_range 2,000
+    setprop ro.iio.anglvel.resolution 0.1
+    setprop ro.iio.anglvel.power 18

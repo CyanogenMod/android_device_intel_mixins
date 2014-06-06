@@ -1,0 +1,11 @@
+on boot
+    insmod /system/lib/modules/kxcjk-1013.ko
+
+on early-init
+    setprop ro.iio.accel.name KXCJK-1013 Accelerometer
+    setprop ro.iio.accel.vendor Kionix
+    setprop ro.iio.accel.max_range 16
+    setprop ro.iio.accel.resolution 0.01
+    setprop ro.iio.accel.power 0.5
+
+
