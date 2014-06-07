@@ -4,6 +4,7 @@ import argparse
 import ConfigParser
 import sys
 import os
+import os.path
 import re
 
 # We're assuming '#' is valid to start a comment in all the configs we are amending
@@ -145,7 +146,7 @@ def clear_file(dest):
             if line == _MIXIN_HEADER:
                 in_mixin = True
                 ever_in_mixin = True
-                output.append(_MIXIN_WARN + sys.argv[0] + '\n')
+                output.append(_MIXIN_WARN + os.path.basename(sys.argv[0]) + '\n')
         else:
             if line == _MIXIN_FOOTER:
                 output.append(line)
@@ -157,7 +158,7 @@ def clear_file(dest):
 
     if not ever_in_mixin:
         output.append(_MIXIN_HEADER)
-        output.append(_MIXIN_WARN + sys.argv[0] + '\n')
+        output.append(_MIXIN_WARN + os.path.basename(sys.argv[0]) + '\n')
         output.append(_MIXIN_FOOTER)
 
     with open(dest, "w") as dfile:
