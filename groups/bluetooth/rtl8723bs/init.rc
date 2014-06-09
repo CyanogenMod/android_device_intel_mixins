@@ -12,12 +12,15 @@ on boot
     insmod /system/lib/modules/hci_uart.ko
     start hciattach-rtk
 
+on post-fs-data
+    mkdir /data/misc/dhcp 0770 dhcp system
+
 service hciattach-rtk /system/bin/hciattach /dev/ttyS1 rtk_h5
     user root
     group root
     oneshot
 
-service dhcpcd_bt-pan /system/bin/dhcpcd -d -aABKL -f /system/etc/dhcpcd/android.conf
+service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
     disabled
     oneshot
 
