@@ -6,6 +6,8 @@ import sys
 import os
 import os.path
 import re
+import hashlib
+import argparse
 
 # We're assuming '#' is valid to start a comment in all the configs we are amending
 # which so far is true.
@@ -23,6 +25,7 @@ _FILE_LIST = ["BoardConfig.mk", "init.rc", "init.recovery.rc", "fstab", "product
 
 _PRODUCT_SPEC_FN = "mixins.spec"
 _GROUP_SPEC_FN = "mixinfo.spec"
+_HASH_FILE = "mixins.hash"
 
 def warning(s):
     sys.stderr.write(s + "\n");
@@ -32,6 +35,24 @@ def warning(s):
 def die(s):
     warning(s)
     assert False
+
+
+def hash_directory(specfile, base_path):
+    h = hashlib.sha1()
+
+    with open(specfile) as fp:
+        h.update(specfile + fp.read())
+
+    for dirpath, dirnames, filenames in os.walk(base_path, topdown=True, followlinks=True):
+        # skip dot directories
+        dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith(".")]
+        for filename in filenames:
+            if filename.startswith("."):
+                continue
+            fname = os.path.join(dirpath, filename)
+            with open(fname) as fp:
+                h.update(fname + fp.read())
+    return h.hexdigest()
 
 
 def read_spec_file(specfile, cp=None):
@@ -217,6 +238,7 @@ def process_spec_file(specfile):
     basedir = cp.get("main", "mixinsdir")
     selections = cp.items("groups")
     mixin_tree = read_mixin_tree(basedir)
+    mixins_hash = hash_directory(specfile, basedir)
     product_dir = os.path.dirname(specfile)
     file_map = {}
 
@@ -256,6 +278,29 @@ def process_spec_file(specfile):
             for frag in frags:
                 if os.path.exists(frag):
                     amend_file(dest_fn, frag, basedir)
+    with open(os.path.join(product_dir, _HASH_FILE), "w") as fp:
+        fp.write(mixins_hash)
+
+
+def check_spec_file(specfile):
+    cp = read_spec_file(specfile)
+    basedir = cp.get("main", "mixinsdir")
+    mixins_hash = hash_directory(specfile, basedir)
+    product_dir = os.path.dirname(specfile)
+
+    hfile = os.path.join(product_dir, _HASH_FILE);
+
+    if not os.path.exists(hfile):
+        sys.stderr.write("mixins.hash missing for {}\n".format(product_dir))
+        return False
+
+    with open(hfile) as fp:
+        saved_hash = fp.read()
+
+    if saved_hash != mixins_hash:
+        sys.stderr.write("hashes don't match for {}\n".format(product_dir))
+        return False
+    return True
 
 
 def find_all_spec_files(basepath):
@@ -268,13 +313,38 @@ def find_all_spec_files(basepath):
             ret.append(os.path.join(root, _PRODUCT_SPEC_FN))
     return ret
 
-def main():
-    sfiles = find_all_spec_files("device/intel")
+
+def main(dry_run=False, sfiles=None):
+    ret = 0
+
+    if not sfiles:
+        sfiles = find_all_spec_files("device/intel")
 
     for sf in sfiles:
-        print "Processing", sf
-        process_spec_file(sf)
+        if not check_spec_file(sf):
+            ret = 1
+            if not dry_run:
+                print "Processing {}".format(sf)
+                process_spec_file(sf)
+            else:
+                warning("{} needs to be updated".format(os.path.dirname(sf)))
+        else:
+            if not dry_run:
+                print "{} appears to be up-to-date".format(sf)
+
+    if dry_run:
+        return ret
+    return 0
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Update board configurations with mixin data based on spec file")
+    parser.add_argument("-d", "--dry-run", help="Don't make any actual changes, exit nonzero if something needs to be updated",
+            action="store_true")
+    parser.add_argument("-s", "--spec", help="Read a specific spec file. Can be called multiple times. Defaults to scanning the tree under device/intel/ for spec files", action="append")
+    args = parser.parse_args()
+
+    ret = main(args.dry_run, args.spec)
+    if ret:
+        warning("Board configs are out of sync with mixins, please run mixin-update")
+    sys.exit(ret)
 
