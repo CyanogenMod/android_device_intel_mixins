@@ -6,6 +6,11 @@ endif
 # REMOVE THIS WHEN hald IS REMOVED
 PRODUCT_COPY_FILES += $(LOCAL_PATH)/../atomisp.conf:system/etc/modprobe.d/atomisp.conf
 
+# Android framework boilerplate.
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.camera.autofocus.xml:system/etc/permissions/android.hardware.camera.autofocus.xml \
+    frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
+
 # Camera HAL (libcamera2)
 PRODUCT_PACKAGES += camera.$(TARGET_BOARD_PLATFORM)
 
