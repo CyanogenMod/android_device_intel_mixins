@@ -27,7 +27,9 @@ PRODUCT_PACKAGES += \
     shisp_2400b0_v21.bin \
 
 # libmix
-PRODUCT_PACKAGES += libmix_videovpp
+PRODUCT_PACKAGES += \
+    libmix_videovpp \
+    libintelmetadatabuffer
 
 # Only include libmix_videovpp test program in eng builds.
 ifeq ($(TARGET_BUILD_VARIANT),eng)

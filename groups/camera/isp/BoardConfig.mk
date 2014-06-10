@@ -29,7 +29,7 @@ USE_INTEL_IPP := true
 USE_INTEL_JPEG := false
 
 # Use Intel meta buffer type to share buffer with video encoder. 
-USE_INTEL_METABUFFER := false
+USE_INTEL_METABUFFER := true
 
 # FIXME: remove below flag when usage has been removed.
 # FIXME2: note that the ufo mixin also sets this, arbitrate...
