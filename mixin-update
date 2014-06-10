@@ -27,14 +27,22 @@ _PRODUCT_SPEC_FN = "mixins.spec"
 _GROUP_SPEC_FN = "mixinfo.spec"
 _HASH_FILE = "mixins.hash"
 
+abort_on_errors = True
+policy_errors_found = False
+
 def warning(s):
     sys.stderr.write(s + "\n");
     sys.stderr.flush()
 
 
-def die(s):
+def policy_error(s):
+    global policy_errors_found
+    sys.stderr.write("ERROR: ")
     warning(s)
-    assert False
+    if abort_on_errors:
+        sys.exit(1)
+    else:
+        policy_errors_found = True
 
 
 def hash_directory(specfile, base_path):
@@ -120,22 +128,29 @@ def validate_selections(selections, mixin_tree):
     group default selections"""
 
     groups_seen = []
+    returned_selections = []
 
     for (group, option) in selections:
         if group in groups_seen:
-            die("selection already made for group {}".format(group))
+            policy_error("selection already made for group {}".format(group))
+            continue
+
         groups_seen.append(group)
 
         if group not in mixin_tree:
-            die("no definition found for group {}".format(group))
+            policy_error("no definition found for group {}".format(group))
+            continue
 
         if option not in mixin_tree[group]["options"]:
-            die("unknown option {} for group {}".format(option, group))
+            policy_error("unknown option {} for group {}".format(option, group))
+            continue
 
         deps = mixin_tree[group]["deps"]
         for dep in deps:
             if dep not in groups_seen:
-                die("group {} requires that group {} be selected first".format(group, dep))
+                policy_error("group {} requires that group {} be selected first".format(group, dep))
+
+        returned_selections.append((group, option))
 
     # The spec file may have omitted some groups. If so, pull in their
     # default options, or generate an error if there is no default
@@ -143,8 +158,11 @@ def validate_selections(selections, mixin_tree):
     for group in unspecified_groups:
         warning("group {} exists but not specified, using default option".format(group))
         if "default" not in mixin_tree[group]["options"]:
-            die("group {} doesn't have a default option!".format(group))
-        selections.append((group, "default"))
+            policy_error("group {} doesn't have a default option!".format(group))
+        else:
+            returned_selections.append((group, "default"))
+
+    return returned_selections
 
 
 def clear_file(dest):
@@ -211,7 +229,7 @@ def amend_file(dest, src, mixinsbase):
     # sanity checks
     for line in slines:
         if mixinsbase in line:
-            die("build-time references to paths inside mixin directory are not allowed; {} is invalid".format(src))
+            policy_error("build-time references to paths inside mixin directory are not allowed; {} is invalid".format(src))
         m = re.search("(\w*)\s*[:][=]", line)
         if m:
             vname = m.groups()[0]
@@ -250,7 +268,7 @@ def process_spec_file(specfile):
 
     # After this, all default selections should be populated
     # and the selections should be sane
-    validate_selections(selections, mixin_tree)
+    selections = validate_selections(selections, mixin_tree)
 
     for src, dest in file_map.iteritems():
         dest_fn = os.path.join(product_dir, dest)
@@ -312,37 +330,56 @@ def find_all_spec_files(basepath):
     return ret
 
 
-def main(dry_run=False, sfiles=None):
+def main(dry_run=False, sfiles=None, warn_only=False, force_update=False):
+    global abort_on_errors
+
     ret = 0
+    abort_on_errors = not warn_only
+    out_of_sync = False
 
     if not sfiles:
         sfiles = find_all_spec_files("device/intel")
 
     for sf in sfiles:
-        if not check_spec_file(sf):
-            ret = 1
-            if not dry_run:
+        if dry_run:
+            if not check_spec_file(sf):
+                out_of_sync = True
+                warning("{} needs to be updated".format(os.path.dirname(sf)))
+        else:
+            if force_update or not check_spec_file(sf):
                 print "Processing {}".format(sf)
                 process_spec_file(sf)
             else:
-                warning("{} needs to be updated".format(os.path.dirname(sf)))
-        else:
-            if not dry_run:
                 print "{} appears to be up-to-date".format(sf)
 
-    if dry_run:
-        return ret
-    return 0
+    if out_of_sync:
+        warning("Board configs are out of sync with mixins, please run mixin-update")
+        ret = 3
+
+    if policy_errors_found:
+        warning("Some spec files have policy issues")
+        ret = 2
+
+    return ret
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update board configurations with mixin data based on spec file")
-    parser.add_argument("-d", "--dry-run", help="Don't make any actual changes, exit nonzero if something needs to be updated",
+    parser.add_argument("-d", "--dry-run",
+            help="Don't make any actual changes, exit nonzero if something needs to be updated",
             action="store_true")
-    parser.add_argument("-s", "--spec", help="Read a specific spec file. Can be called multiple times. Defaults to scanning the tree under device/intel/ for spec files", action="append")
+    parser.add_argument("-s", "--spec",
+            help="Read a specific spec file. Can be called multiple times. Defaults to scanning the tree under device/intel/ for spec files",
+            action="append")
+    parser.add_argument("-w", "--warn-only",
+            help="Generate warnings instead of fatal errors for spec file policy violations",
+            action="store_true")
+    parser.add_argument("-f", "--force-update",
+            help="Force update even if the hashes appear to be the same",
+            action="store_true")
+
     args = parser.parse_args()
 
-    ret = main(args.dry_run, args.spec)
-    if ret:
-        warning("Board configs are out of sync with mixins, please run mixin-update")
+    ret = main(args.dry_run, args.spec, args.warn_only, args.force_update)
     sys.exit(ret)
 
