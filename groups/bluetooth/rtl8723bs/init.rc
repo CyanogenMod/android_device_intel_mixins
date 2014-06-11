@@ -10,17 +10,23 @@ on boot
     insmod /system/lib/modules/6lowpan_iphc.ko
     insmod /system/lib/modules/bluetooth.ko
     insmod /system/lib/modules/hci_uart.ko
-    start hciattach-rtk
     chmod 0644 /sys/kernel/debug/bluetooth/l2cap_le_max_credits
     chmod 0644 /sys/kernel/debug/bluetooth/l2cap_le_default_mps
 
 on post-fs-data
     mkdir /data/misc/dhcp 0770 dhcp system
 
-service hciattach-rtk /system/bin/hciattach /dev/ttyS1 rtk_h5
+on property:bluetooth.hwcfg=start
+    start btcfg
+
+on property:bluetooth.hwcfg=stop
+    stop btcfg
+
+service btcfg /system/bin/hciattach -n /dev/ttyS1 rtk_h5
     user bluetooth
     group bluetooth
     oneshot
+    disabled
 
 service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
     disabled
