@@ -84,6 +84,7 @@ $(call copy-pfw, intel/WindNoiseReduction_V1_0.xml)
 PRODUCT_COPY_FILES += $(audiohal_config)/audio_policy.conf:system/etc/audio_policy.conf
 
 # SST Firmware
-PRODUCT_COPY_FILES += vendor/intel/fw/sst/fw_sst_0f28_ssp0.bin:/system/etc/firmware/fw_sst_0f28_ssp0.bin:intel_apache
-PRODUCT_COPY_FILES += vendor/intel/fw/sst/fw_sst_0f28_ssp2.bin:/system/etc/firmware/fw_sst_0f28_ssp2.bin:intel_apache
+PRODUCT_PACKAGES += \
+    fw_sst_0f28_ssp0.bin \
+    fw_sst_0f28_ssp2.bin
 
