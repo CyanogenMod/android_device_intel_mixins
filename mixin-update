@@ -53,8 +53,8 @@ def hash_directory(specfile, base_path):
 
     for dirpath, dirnames, filenames in os.walk(base_path, topdown=True, followlinks=True):
         # skip dot directories
-        dirnames[:] = [dirname for dirname in dirnames if not dirname.startswith(".")]
-        for filename in filenames:
+        dirnames[:] = [dirname for dirname in sorted(dirnames) if not dirname.startswith(".")]
+        for filename in sorted(filenames):
             if filename.startswith("."):
                 continue
             fname = os.path.join(dirpath, filename)
