@@ -3,3 +3,8 @@ service thermal-daemon /system/bin/thermal-daemon
     group system
     class main
 
+on boot
+    chown system system /sys/devices/system/cpu/intel_pstate/max_perf_pct
+    chown system system /sys/devices/system/cpu/intel_pstate/min_perf_pct
+    chown system system /sys/devices/system/cpu/intel_pstate/no_turbo
+
