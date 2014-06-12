@@ -27,3 +27,7 @@ service iprenew_wlan1 /system/bin/dhcpcd -n
     class main
     disabled
     oneshot
+
+on boot
+    insmod /system/lib/modules/cfg80211.ko
+    insmod /system/lib/modules/8723bs.ko
