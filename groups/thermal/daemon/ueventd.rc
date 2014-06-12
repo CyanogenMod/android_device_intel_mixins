@@ -1,2 +1,3 @@
 # thermal daemon runs as system user and it depends on these nodes
-/sys/devices/virtual/thermal/cooling_device*    cur_state       0644 system system
+/sys/devices/virtual/thermal/cooling_device*    cur_state            0644 system system
+/sys/devices/virtual/thermal/thermal_zone*      trip_point_1_temp    0644 system system
