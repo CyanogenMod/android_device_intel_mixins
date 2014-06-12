@@ -1,9 +1,8 @@
-on boot
+on post-fs
     insmod /system/lib/modules/ak8975.ko
 
-on early-init
-    setprop ro.iio.magn.name AK8975 Compass
-    setprop ro.iio.magn.vendor Asahi Kasei
+    setprop ro.iio.magn.name "AK8975 Compass"
+    setprop ro.iio.magn.vendor "Asahi Kasei"
     setprop ro.iio.magn.max_range 1200
     setprop ro.iio.magn.resolution 0.01
     setprop ro.iio.magn.power .3

@@ -1,9 +1,8 @@
-on boot
+on post-fs
     insmod /system/lib/modules/cm32181.ko
 
-on early-init
-    setprop ro.iio.illuminance.name CPLM3218x Ambient Light Sensor
-    setprop ro.iio.illuminance.vendor Capella Microsystems
+    setprop ro.iio.illuminance.name "CPLM3218x Ambient Light Sensor"
+    setprop ro.iio.illuminance.vendor "Capella Microsystems"
     setprop ro.iio.illuminance.max_range 167000
     setprop ro.iio.illuminance.resolution 1
     setprop ro.iio.illuminance.power .001

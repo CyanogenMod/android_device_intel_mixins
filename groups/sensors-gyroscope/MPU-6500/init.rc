@@ -1,9 +1,8 @@
-on boot
+on post-fs
     insmod /system/lib/modules/inv-mpu6050.ko
 
-on early-init
-    setprop ro.iio.anglvel.name MPU-6500 Gyroscope
-    setprop ro.iio.anglvel.vendor InvenSense
+    setprop ro.iio.anglvel.name "MPU-6500 Gyroscope"
+    setprop ro.iio.anglvel.vendor "InvenSense"
     setprop ro.iio.anglvel.max_range 30
     setprop ro.iio.anglvel.resolution 0.001
     setprop ro.iio.anglvel.power 3

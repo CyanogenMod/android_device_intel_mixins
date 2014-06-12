@@ -1,9 +1,8 @@
-on boot
+on post-fs
     insmod /system/lib/modules/jsa1212.ko
 
-on early-init
-    setprop ro.iio.illuminance.name JSA-1212 Ambient Light Sensor
-    setprop ro.iio.illuminance.vendor solteam
+    setprop ro.iio.illuminance.name "JSA-1212 Ambient Light Sensor"
+    setprop ro.iio.illuminance.vendor "solteam"
     setprop ro.iio.illuminance.max_range 2048
     setprop ro.iio.illuminance.resolution 0.500
     setprop ro.iio.illuminance.power .001

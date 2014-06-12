@@ -1,9 +1,8 @@
-on boot
+on post-fs
     insmod /system/lib/modules/inv-mpu6050.ko
 
-on early-init
-    setprop ro.iio.accel.name MPU-6500 Accelerometer
-    setprop ro.iio.accel.vendor InvenSense
+    setprop ro.iio.accel.name "MPU-6500 Accelerometer"
+    setprop ro.iio.accel.vendor "InvenSense"
     setprop ro.iio.accel.max_range 16
     setprop ro.iio.accel.resolution 0.01
     setprop ro.iio.accel.power 0.5
