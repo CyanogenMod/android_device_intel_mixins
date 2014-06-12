@@ -1,6 +1,8 @@
 /dev/iio:device*              0660   system     system
 
 /sys/devices/platform/*/i2c-*/i2c-*/iio:device* sampling_frequency            0660    system  system
+/sys/devices/platform/*/i2c-*/i2c-*/iio:device* in_accel_sampling_frequency   0660    system  system
+/sys/devices/platform/*/i2c-*/i2c-*/iio:device* in_angvel_sampling_frequency  0660    system  system
 /sys/devices/platform/*/i2c-*/i2c-*/iio:device* sampling_frequency_available  0660    system  system
 
 /sys/devices/platform/*/i2c-*/i2c-*/iio:device* in_accel_matrix         0660    system  system
