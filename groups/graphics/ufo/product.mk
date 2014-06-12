@@ -6,6 +6,12 @@ PRODUCT_PACKAGES += \
     libdrm_intel \
     ufo.prop
 
+#
+# Color conversion library
+#
+PRODUCT_PACKAGES += \
+    libI420colorconvert
+
 ifneq ($(BOARD_HAVE_GEN_GFX_SRC),true)
     # UFO prebuilts
     PRODUCT_PACKAGES += ufo_prebuilts
