@@ -7,5 +7,5 @@ service atomisp-init /system/bin/sh /system/etc/init.atomisp.sh
     oneshot
     disabled
 
-on post-fs
+on boot
     start atomisp-init
