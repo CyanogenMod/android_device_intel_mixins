@@ -2,10 +2,6 @@ ifeq ($(TARGET_BOARD_PLATFORM),)
     $(error Please define TARGET_BOARD_PLATFORM in product-level Makefile)
 endif
 
-# Hald blacklist config
-# REMOVE THIS WHEN hald IS REMOVED
-PRODUCT_COPY_FILES += $(LOCAL_PATH)/../atomisp.conf:system/etc/modprobe.d/atomisp.conf
-
 # Android framework boilerplate.
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
