@@ -1,5 +1,5 @@
 # Tinyalsa
-PRODUCT_PACKAGES += \
+PRODUCT_PACKAGES_DEBUG += \
          tinymix \
          tinyplay \
          tinycap
@@ -13,7 +13,7 @@ PRODUCT_PACKAGES += \
     libtinyalsactl-subsystem \
 
 # parameter-framework debug/tuning/engineering
-PRODUCT_PACKAGES += \
+PRODUCT_PACKAGES_ENG += \
     remote-process
 
 audiohal_config := device/intel/common/audio/bytcr-rt564x
@@ -22,22 +22,36 @@ $(eval PRODUCT_COPY_FILES += \
     $(audiohal_config)/pfw/$(strip $(1)):system/etc/parameter-framework/$(strip $(1)) \
 )
 endef
+define copy-pfw-ch-name
+$(eval PRODUCT_COPY_FILES += \
+    $(audiohal_config)/pfw/$(strip $(1)):system/etc/parameter-framework/$(strip $(2)) \
+)
+endef
 
+
+ifneq ($(filter $(TARGET_BUILD_VARIANT),eng),)
+$(call copy-pfw, ParameterFrameworkConfiguration-bytcr-rt5642-t100.xml)
+$(call copy-pfw, ParameterFrameworkConfiguration-bytcr-rt5640-mrd7.xml)
 $(call copy-pfw, ParameterFrameworkConfigurationRoute-bytcr-rt5642-t100.xml)
+$(call copy-pfw, ParameterFrameworkConfigurationRoute-bytcr-rt5640-mrd7.xml)
+else
+$(call copy-pfw-ch-name, ParameterFrameworkConfiguration-bytcr-rt5642-t100-NoTuning.xml, ParameterFrameworkConfiguration-bytcr-rt5642-t100.xml)
+$(call copy-pfw-ch-name, ParameterFrameworkConfiguration-bytcr-rt5640-mrd7-NoTuning.xml, ParameterFrameworkConfiguration-bytcr-rt5640-mrd7.xml)
+$(call copy-pfw-ch-name, ParameterFrameworkConfigurationRoute-bytcr-rt5642-t100-NoTuning.xml, ParameterFrameworkConfigurationRoute-bytcr-rt5642-t100.xml)
+$(call copy-pfw-ch-name, ParameterFrameworkConfigurationRoute-bytcr-rt5640-mrd7-NoTuning.xml, ParameterFrameworkConfigurationRoute-bytcr-rt5640-mrd7.xml)
+endif
+
 $(call copy-pfw, RouteClass-bytcr-rt5642-t100.xml)
 $(call copy-pfw, RouteSubsystem-bytcr-rt5642-t100.xml)
 $(call copy-pfw, RouteConfigurableDomains-bytcr-rt5642-t100.xml)
-$(call copy-pfw, ParameterFrameworkConfiguration-bytcr-rt5642-t100.xml)
 $(call copy-pfw, AudioClass-bytcr-rt5642-t100.xml)
 $(call copy-pfw, AudioConfigurableDomains-bytcr-rt5642-t100.xml)
 $(call copy-pfw, CodecSubsystem-bytcr-rt5642-t100.xml)
 $(call copy-pfw, LpeSubsystem-bytcr-rt5642-t100.xml)
 
-$(call copy-pfw, ParameterFrameworkConfigurationRoute-bytcr-rt5640-mrd7.xml)
 $(call copy-pfw, RouteClass-bytcr-rt5640-mrd7.xml)
 $(call copy-pfw, RouteSubsystem-bytcr-rt5640-mrd7.xml)
 $(call copy-pfw, RouteConfigurableDomains-bytcr-rt5640-mrd7.xml)
-$(call copy-pfw, ParameterFrameworkConfiguration-bytcr-rt5640-mrd7.xml)
 $(call copy-pfw, AudioClass-bytcr-rt5640-mrd7.xml)
 $(call copy-pfw, AudioConfigurableDomains-bytcr-rt5640-mrd7.xml)
 $(call copy-pfw, CodecSubsystem-bytcr-rt5640-mrd7.xml)
