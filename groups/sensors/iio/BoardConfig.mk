@@ -1,0 +1,1 @@
+USE_INTEL_SENSOR_HAL := true
