@@ -15,6 +15,9 @@ PRODUCT_PACKAGES += \
 ifneq ($(BOARD_HAVE_GEN_GFX_SRC),true)
     # UFO prebuilts
     PRODUCT_PACKAGES += ufo_prebuilts
+    ifneq ($(TARGET_2ND_ARCH),)
+        PRODUCT_PACKAGES += ufo_prebuilts_32
+    endif
 
 else # ufo packages when building from source
     PRODUCT_PACKAGES += ufo
