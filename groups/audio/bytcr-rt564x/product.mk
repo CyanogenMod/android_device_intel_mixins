@@ -12,6 +12,10 @@ PRODUCT_PACKAGES += \
     libtinyamixer-subsystem \
     libtinyalsactl-subsystem \
 
+# remote submix audio for wifi display
+PRODUCT_PACKAGES += \
+    audio.r_submix.default
+
 # parameter-framework debug/tuning/engineering
 PRODUCT_PACKAGES_ENG += \
     remote-process
