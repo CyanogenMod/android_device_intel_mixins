@@ -8,6 +8,7 @@ import os.path
 import re
 import hashlib
 import argparse
+import string
 
 # We're assuming '#' is valid to start a comment in all the configs we are amending
 # which so far is true.
@@ -25,7 +26,7 @@ _FILE_LIST = ["BoardConfig.mk", "init.rc", "init.recovery.rc", "fstab", "product
 
 _PRODUCT_SPEC_FN = "mixins.spec"
 _GROUP_SPEC_FN = "mixinfo.spec"
-_HASH_FILE = "mixins.hash"
+_HASH_DIR = ".mixins_hashes"
 
 abort_on_errors = True
 policy_errors_found = False
@@ -45,13 +46,12 @@ def policy_error(s):
         policy_errors_found = True
 
 
-def hash_directory(specfile, base_path):
+def hash_directory(basedir, group, selection):
     h = hashlib.sha1()
 
-    with open(specfile) as fp:
-        h.update(specfile + fp.read())
+    path = os.path.join(basedir, group, selection)
 
-    for dirpath, dirnames, filenames in os.walk(base_path, topdown=True, followlinks=True):
+    for dirpath, dirnames, filenames in os.walk(path, topdown=True, followlinks=True):
         # skip dot directories
         dirnames[:] = [dirname for dirname in sorted(dirnames) if not dirname.startswith(".")]
         for filename in sorted(filenames):
@@ -60,6 +60,7 @@ def hash_directory(specfile, base_path):
             fname = os.path.join(dirpath, filename)
             with open(fname) as fp:
                 h.update(fname + fp.read())
+
     return h.hexdigest()
 
 
@@ -116,7 +117,7 @@ def read_mixin_tree(basedir, mixin_tree=None):
     return mixin_tree
 
 
-def validate_selections(selections, mixin_tree):
+def validate_selections(selections, mixin_tree, silence=False):
     """enforce that the set of mixin selections is sane by checking
     the following:
     1) For each group selected, verify that the group exists and that
@@ -132,23 +133,27 @@ def validate_selections(selections, mixin_tree):
 
     for (group, option) in selections:
         if group in groups_seen:
-            policy_error("selection already made for group {}".format(group))
+            if not silence:
+                policy_error("selection already made for group {}".format(group))
             continue
 
         groups_seen.append(group)
 
         if group not in mixin_tree:
-            policy_error("no definition found for group {}".format(group))
+            if not silence:
+                policy_error("no definition found for group {}".format(group))
             continue
 
         if option not in mixin_tree[group]["options"]:
-            policy_error("unknown option {} for group {}".format(option, group))
+            if not silence:
+                policy_error("unknown option {} for group {}".format(option, group))
             continue
 
         deps = mixin_tree[group]["deps"]
         for dep in deps:
             if dep not in groups_seen:
-                policy_error("group {} requires that group {} be selected first".format(group, dep))
+                if not silence:
+                    policy_error("group {} requires that group {} be selected first".format(group, dep))
 
         returned_selections.append((group, option))
 
@@ -156,9 +161,11 @@ def validate_selections(selections, mixin_tree):
     # default options, or generate an error if there is no default
     unspecified_groups = set(mixin_tree.keys()) - set(groups_seen)
     for group in unspecified_groups:
-        warning("group {} exists but not specified, using default option".format(group))
+        if not silence:
+            warning("group {} exists but not specified, using default option".format(group))
         if "default" not in mixin_tree[group]["options"]:
-            policy_error("group {} doesn't have a default option!".format(group))
+            if not silence:
+                policy_error("group {} doesn't have a default option!".format(group))
         else:
             returned_selections.append((group, "default"))
 
@@ -254,8 +261,8 @@ def process_spec_file(specfile):
     basedir = cp.get("main", "mixinsdir")
     selections = cp.items("groups")
     mixin_tree = read_mixin_tree(basedir)
-    mixins_hash = hash_directory(specfile, basedir)
     product_dir = os.path.dirname(specfile)
+    hash_dir = os.path.join(product_dir, _HASH_DIR);
     file_map = {}
 
     # Set up the file map since the config files in the product directory
@@ -294,28 +301,47 @@ def process_spec_file(specfile):
             for frag in frags:
                 if os.path.exists(frag):
                     amend_file(dest_fn, frag, basedir)
-    with open(os.path.join(product_dir, _HASH_FILE), "w") as fp:
-        fp.write(mixins_hash)
+
+            mixins_hash = hash_directory(basedir, group, option)
+            with open(os.path.join(hash_dir, group), "w") as fp:
+                fp.write(option)
+                fp.write(" ")
+                fp.write(mixins_hash)
 
 
 def check_spec_file(specfile):
     cp = read_spec_file(specfile)
     basedir = cp.get("main", "mixinsdir")
-    mixins_hash = hash_directory(specfile, basedir)
+    selections = cp.items("groups")
+    mixin_tree = read_mixin_tree(basedir)
     product_dir = os.path.dirname(specfile)
+    hash_dir = os.path.join(product_dir, _HASH_DIR);
 
-    hfile = os.path.join(product_dir, _HASH_FILE);
-
-    if not os.path.exists(hfile):
-        sys.stderr.write("mixins.hash missing for {}\n".format(product_dir))
+    if not os.path.exists(hash_dir):
+        sys.stderr.write("{} missing for {}, creating...\n".format(_HASH_DIR, product_dir))
+        os.mkdir(hash_dir, 0755)
         return False
 
-    with open(hfile) as fp:
-        saved_hash = fp.read()
+    # After this, all default selections should be populated
+    # and the selections should be sane
+    selections = validate_selections(selections, mixin_tree, silence=True)
 
-    if saved_hash != mixins_hash:
-        sys.stderr.write("hashes don't match for {}\n".format(product_dir))
-        return False
+    for (group, option) in selections:
+        # if hash file does not exist, need to create one
+        comp_hash_file = os.path.join(hash_dir, group)
+        if not os.path.exists(comp_hash_file):
+            return False;
+
+        with open(comp_hash_file) as fp:
+            saved_hash_line = fp.read()
+            (saved_group, saved_hash) = string.split(saved_hash_line)
+
+            mixins_hash = hash_directory(basedir, group, option)
+
+            if saved_hash != mixins_hash:
+                sys.stderr.write("hashes don't match for {}\n".format(product_dir))
+                return False
+
     return True
 
 
