@@ -21,7 +21,7 @@ else # ufo packages when building from source
     PRODUCT_PACKAGES += ufo_test
 endif
 
-PRODUCT_PROPERTY_OVERRIDES += ro.opengles.version = 196608
+PRODUCT_PROPERTY_OVERRIDES += ro.opengles.version = 196609
 PRODUCT_COPY_FILES += \
     device/intel/common/ufo/init.ufo.sh:system/etc/init.ufo.sh
 
