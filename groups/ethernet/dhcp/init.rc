@@ -1,7 +1,8 @@
-service dhcpcd-eth0 /system/bin/dhcpcd -bd eth0
+service dhcpcd_eth0 /system/bin/dhcpcd -ABDKL
+    class main
     disabled
     oneshot
 
 on device-added-/dev/eth0
-    start dhcpcd-eth0
+    start dhcpcd_eth0
 
