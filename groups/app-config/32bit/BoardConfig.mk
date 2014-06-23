@@ -1,0 +1,1 @@
+TARGET_PREFER_32_BIT := true
