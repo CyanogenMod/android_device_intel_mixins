@@ -6,7 +6,6 @@ import sys
 import os
 import os.path
 import re
-import hashlib
 import argparse
 import string
 
@@ -26,7 +25,6 @@ _FILE_LIST = ["BoardConfig.mk", "init.rc", "init.recovery.rc", "fstab", "product
 
 _PRODUCT_SPEC_FN = "mixins.spec"
 _GROUP_SPEC_FN = "mixinfo.spec"
-_HASH_DIR = ".mixins_hashes"
 
 abort_on_errors = True
 policy_errors_found = False
@@ -44,24 +42,6 @@ def policy_error(s):
         sys.exit(1)
     else:
         policy_errors_found = True
-
-
-def hash_directory(basedir, group, selection):
-    h = hashlib.sha1()
-
-    path = os.path.join(basedir, group, selection)
-
-    for dirpath, dirnames, filenames in os.walk(path, topdown=True, followlinks=True):
-        # skip dot directories
-        dirnames[:] = [dirname for dirname in sorted(dirnames) if not dirname.startswith(".")]
-        for filename in sorted(filenames):
-            if filename.startswith("."):
-                continue
-            fname = os.path.join(dirpath, filename)
-            with open(fname) as fp:
-                h.update(fname + fp.read())
-
-    return h.hexdigest()
 
 
 def read_spec_file(specfile, cp=None):
@@ -117,7 +97,7 @@ def read_mixin_tree(basedir, mixin_tree=None):
     return mixin_tree
 
 
-def validate_selections(selections, mixin_tree, silence=False):
+def validate_selections(selections, mixin_tree, verbose=False):
     """enforce that the set of mixin selections is sane by checking
     the following:
     1) For each group selected, verify that the group exists and that
@@ -133,27 +113,23 @@ def validate_selections(selections, mixin_tree, silence=False):
 
     for (group, option) in selections:
         if group in groups_seen:
-            if not silence:
-                policy_error("selection already made for group {}".format(group))
+            policy_error("selection already made for group {}".format(group))
             continue
 
         groups_seen.append(group)
 
         if group not in mixin_tree:
-            if not silence:
-                policy_error("no definition found for group {}".format(group))
+            policy_error("no definition found for group {}".format(group))
             continue
 
         if option not in mixin_tree[group]["options"]:
-            if not silence:
-                policy_error("unknown option {} for group {}".format(option, group))
+            policy_error("unknown option {} for group {}".format(option, group))
             continue
 
         deps = mixin_tree[group]["deps"]
         for dep in deps:
             if dep not in groups_seen:
-                if not silence:
-                    policy_error("group {} requires that group {} be selected first".format(group, dep))
+                policy_error("group {} requires that group {} be selected first".format(group, dep))
 
         returned_selections.append((group, option))
 
@@ -161,7 +137,7 @@ def validate_selections(selections, mixin_tree, silence=False):
     # default options, or generate an error if there is no default
     unspecified_groups = set(mixin_tree.keys()) - set(groups_seen)
     for group in unspecified_groups:
-        if not silence:
+        if verbose:
             warning("group {} exists but not specified, using default option".format(group))
         if "default" not in mixin_tree[group]["options"]:
             if not silence:
@@ -173,9 +149,10 @@ def validate_selections(selections, mixin_tree, silence=False):
 
 
 def clear_file(dest):
-    """Clear out any existing mixin defintions from the specified file; after this
+    """Return of list of string lines based on the destination file.
+    Clear out any existing mixin defintions from the specified file; after this
     is done only the header/footer will remain. If the dest file never had anything
-    in it, add the header/footer. If the dest file didn't exist, create it."""
+    in it, add the header/footer"""
     output = []
     in_mixin = False
     ever_in_mixin = False
@@ -185,6 +162,8 @@ def clear_file(dest):
             dlines = dfile.readlines()
     else:
         dlines = []
+
+    orig_dlines = dlines[:]
 
     for line in dlines:
         if not in_mixin:
@@ -207,8 +186,8 @@ def clear_file(dest):
         output.append(_MIXIN_WARN + os.path.basename(sys.argv[0]) + '\n')
         output.append(_MIXIN_FOOTER)
 
-    with open(dest, "w") as dfile:
-        dfile.writelines(output)
+    return orig_dlines, output
+
 
 warn_vars = [
         "ADDITIONAL_BUILD_PROPERTIES",
@@ -225,13 +204,11 @@ warn_vars = [
         "PRODUCT_PROPERTY_OVERRIDES",
         ]
 
-def amend_file(dest, src, mixinsbase):
-    """Augment the destination file with data from the source file provided.
-    Assumes we have run clear_file() on dest at some point beforehand"""
+def amend_file(dlines, src, mixinsbase):
+    """Augment the destination lines list with data from the source file provided.
+    Assumes we have run clear_file() on dlines at some point beforehand"""
     with open(src) as sfile:
         slines = sfile.readlines()
-    with open(dest) as dfile:
-        dlines = dfile.readlines()
 
     # sanity checks
     for line in slines:
@@ -252,17 +229,15 @@ def amend_file(dest, src, mixinsbase):
             output.extend(slines)
         output.append(line)
 
-    with open(dest, "w") as dfile:
-        dfile.writelines(output)
+    return output
 
 
-def process_spec_file(specfile):
+def process_spec_file(specfile, dry_run):
     cp = read_spec_file(specfile)
     basedir = cp.get("main", "mixinsdir")
     selections = cp.items("groups")
     mixin_tree = read_mixin_tree(basedir)
     product_dir = os.path.dirname(specfile)
-    hash_dir = os.path.join(product_dir, _HASH_DIR);
     file_map = {}
 
     # Set up the file map since the config files in the product directory
@@ -275,13 +250,12 @@ def process_spec_file(specfile):
 
     # After this, all default selections should be populated
     # and the selections should be sane
-    selections = validate_selections(selections, mixin_tree)
+    selections = validate_selections(selections, mixin_tree, not dry_run)
 
     for src, dest in file_map.iteritems():
         dest_fn = os.path.join(product_dir, dest)
-        clear_file(dest_fn)
-        # dest_fn guaranteed to exist at this point and have the mixin
-        # header/footer with no data in between
+
+        orig_dest_lines, dest_lines = clear_file(dest_fn)
 
         # Now check all the groups to see if they have a configuration
         # fragment to insert into the destination file
@@ -300,47 +274,15 @@ def process_spec_file(specfile):
 
             for frag in frags:
                 if os.path.exists(frag):
-                    amend_file(dest_fn, frag, basedir)
+                    dest_lines = amend_file(dest_lines, frag, basedir)
 
-            mixins_hash = hash_directory(basedir, group, option)
-            with open(os.path.join(hash_dir, group), "w") as fp:
-                fp.write(option)
-                fp.write(" ")
-                fp.write(mixins_hash)
-
-
-def check_spec_file(specfile):
-    cp = read_spec_file(specfile)
-    basedir = cp.get("main", "mixinsdir")
-    selections = cp.items("groups")
-    mixin_tree = read_mixin_tree(basedir)
-    product_dir = os.path.dirname(specfile)
-    hash_dir = os.path.join(product_dir, _HASH_DIR);
-
-    if not os.path.exists(hash_dir):
-        sys.stderr.write("{} missing for {}, creating...\n".format(_HASH_DIR, product_dir))
-        os.mkdir(hash_dir, 0755)
-        return False
-
-    # After this, all default selections should be populated
-    # and the selections should be sane
-    selections = validate_selections(selections, mixin_tree, silence=True)
-
-    for (group, option) in selections:
-        # if hash file does not exist, need to create one
-        comp_hash_file = os.path.join(hash_dir, group)
-        if not os.path.exists(comp_hash_file):
-            return False;
-
-        with open(comp_hash_file) as fp:
-            saved_hash_line = fp.read()
-            (saved_group, saved_hash) = string.split(saved_hash_line)
-
-            mixins_hash = hash_directory(basedir, group, option)
-
-            if saved_hash != mixins_hash:
-                sys.stderr.write("hashes don't match for {}\n".format(product_dir))
+        if dry_run:
+            if cmp(dest_lines, orig_dest_lines) != 0:
+                warning("{} is out of date".format(dest_fn))
                 return False
+        else:
+            with open(dest_fn, "w") as fp:
+                fp.writelines(dest_lines)
 
     return True
 
@@ -356,7 +298,7 @@ def find_all_spec_files(basepath):
     return ret
 
 
-def main(dry_run=False, sfiles=None, warn_only=False, force_update=False):
+def main(dry_run=False, sfiles=None, warn_only=False):
     global abort_on_errors
 
     ret = 0
@@ -367,16 +309,8 @@ def main(dry_run=False, sfiles=None, warn_only=False, force_update=False):
         sfiles = find_all_spec_files("device/intel")
 
     for sf in sfiles:
-        if dry_run:
-            if not check_spec_file(sf):
-                out_of_sync = True
-                warning("{} needs to be updated".format(os.path.dirname(sf)))
-        else:
-            if force_update or not check_spec_file(sf):
-                print "Processing {}".format(sf)
-                process_spec_file(sf)
-            else:
-                print "{} appears to be up-to-date".format(sf)
+        if not process_spec_file(sf, dry_run):
+            out_of_sync = True
 
     if out_of_sync:
         warning("Board configs are out of sync with mixins, please run mixin-update")
@@ -400,12 +334,9 @@ if __name__ == "__main__":
     parser.add_argument("-w", "--warn-only",
             help="Generate warnings instead of fatal errors for spec file policy violations",
             action="store_true")
-    parser.add_argument("-f", "--force-update",
-            help="Force update even if the hashes appear to be the same",
-            action="store_true")
 
     args = parser.parse_args()
 
-    ret = main(args.dry_run, args.spec, args.warn_only, args.force_update)
+    ret = main(args.dry_run, args.spec, args.warn_only)
     sys.exit(ret)
 
