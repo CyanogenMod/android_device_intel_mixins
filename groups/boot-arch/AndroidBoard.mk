@@ -117,3 +117,7 @@ userfastboot-usb: $(fastboot_usb_bin)
 
 $(call dist-for-goals,droidcore,$(fastboot_usb_bin):$(TARGET_PRODUCT)-fastboot-usb-$(FILE_NAME_TAG).img)
 
+ifneq ($(BOARD_SFU_UPDATE),)
+$(call dist-for-goals,droidcore,$(BOARD_SFU_UPDATE):$(TARGET_PRODUCT)-sfu-$(FILE_NAME_TAG).fv)
+endif
+
