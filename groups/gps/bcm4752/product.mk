@@ -1,8 +1,8 @@
 PRODUCT_PACKAGES += \
     gps.conf \
     gps.xml \
-    gps.gmin \
-    flp.gmin \
+    gps.$(TARGET_BOARD_PLATFORM) \
+    flp.$(TARGET_BOARD_PLATFORM) \
     gpsd \
     gpscerd \
 
