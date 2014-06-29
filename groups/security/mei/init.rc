@@ -1,0 +1,2 @@
+on boot
+    write /sys/devices/pci0000:00/0000:00:16.0/power/control auto
