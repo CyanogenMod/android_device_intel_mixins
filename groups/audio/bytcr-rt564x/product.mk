@@ -9,8 +9,8 @@ PRODUCT_PACKAGES += \
     audio_hal_configurable \
     libroute-subsystem \
     libfs-subsystem \
-    libtinyamixer-subsystem \
-    libtinyalsactl-subsystem \
+    libtinyalsa-subsystem \
+    libtinyalsa_custom-subsystem \
 
 # remote submix audio for wifi display
 PRODUCT_PACKAGES += \
