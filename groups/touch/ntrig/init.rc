@@ -1,0 +1,2 @@
+on boot
+    insmod /system/lib/modules/i2c-hid.ko
