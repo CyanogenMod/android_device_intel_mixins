@@ -1,0 +1,3 @@
+on post-fs-data
+    # Create data folder for NFC
+    mkdir /data/nfc 0770 nfc nfc

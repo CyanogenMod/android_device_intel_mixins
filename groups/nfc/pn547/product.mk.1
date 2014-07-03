@@ -1,0 +1,14 @@
+# Default (fallback) location of generic PN547 conf files
+# (if needed, can be overridden in board's device.mk
+# with board-customized conf file location)
+NFC_CONF_PATH ?= device/intel/common/nfc/pn547
+
+# PN547-specific configuration files
+PRODUCT_COPY_FILES += \
+    $(NFC_CONF_PATH)/libnfc-brcm.conf:system/etc/libnfc-brcm.conf \
+    $(NFC_CONF_PATH)/libnfc-nxp.conf:system/etc/libnfc-nxp.conf
+
+# PN547-specific NFC packages
+PRODUCT_PACKAGES += \
+    nfc_nci.pn547.default \
+    libpn547_fw
