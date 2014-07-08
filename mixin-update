@@ -7,6 +7,7 @@ import os
 import os.path
 import re
 import argparse
+import collections
 import string
 
 # We're assuming '#' is valid to start a comment in all the configs we are amending
@@ -28,6 +29,37 @@ _GROUP_SPEC_FN = "mixinfo.spec"
 
 abort_on_errors = True
 policy_errors_found = False
+
+class ParameterFormatter(string.Formatter):
+    RE = re.compile(r"""
+        (.*?(?=\$\[\w+\]) # optional text followed by a field
+        |.+?(?=\Z))       # or text followed by an end-of-string
+        (?:               # Possible field_name
+            \$\[
+            (\w+)
+            \]
+        )?""", re.VERBOSE | re.DOTALL)
+
+    def __init__(self):
+        self.kwargs = set()
+        self.used_args = set()
+
+    def parse(self, format_string):
+        for literal_text, field_name in self.RE.findall(format_string):
+            if field_name == '':
+                yield (literal_text, None, None, None)
+            else:
+                yield (literal_text, field_name, '', None)
+
+    def check_unused_args(self, used_args, args, kwargs):
+        self.used_args |= used_args
+        self.kwargs |= set(kwargs.keys())
+
+    def error_on_unused_args(self, option):
+        unused = list(self.kwargs - self.used_args)
+        if unused:
+            policy_error("Unnecessary parameter {} given for mixin option '{}'".format(unused, option))
+
 
 def warning(s):
     sys.stderr.write(s + "\n");
@@ -111,7 +143,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
     groups_seen = []
     returned_selections = []
 
-    for (group, option) in selections:
+    for (group, option, params) in selections:
         if group in groups_seen:
             policy_error("selection already made for group {}".format(group))
             continue
@@ -131,7 +163,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
             if dep not in groups_seen:
                 policy_error("group {} requires that group {} be selected first".format(group, dep))
 
-        returned_selections.append((group, option))
+        returned_selections.append((group, option, params))
 
     # The spec file may have omitted some groups. If so, pull in their
     # default options, or generate an error if there is no default
@@ -143,7 +175,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
             if not silence:
                 policy_error("group {} doesn't have a default option!".format(group))
         else:
-            returned_selections.append((group, "default"))
+            returned_selections.append((group, "default", {}))
 
     return returned_selections
 
@@ -204,11 +236,15 @@ warn_vars = [
         "PRODUCT_PROPERTY_OVERRIDES",
         ]
 
-def amend_file(dlines, src, mixinsbase):
+def amend_file(dlines, src, mixinsbase, params, formatter):
     """Augment the destination lines list with data from the source file provided.
     Assumes we have run clear_file() on dlines at some point beforehand"""
     with open(src) as sfile:
         slines = sfile.readlines()
+        try:
+            slines = [formatter.vformat(i, (), params) for i in slines]
+        except KeyError as e:
+            policy_error("{} depends on undefined mixin parameter '{}'".format(src, e.message))
 
     # sanity checks
     for line in slines:
@@ -232,13 +268,27 @@ def amend_file(dlines, src, mixinsbase):
     return output
 
 
+def split_params(selections):
+    res = []
+    for group, option_params in selections:
+        m = re.match('(\w+)\s*\(([^)]*)\)\s*$', option_params)
+        if m is not None:
+            option = m.group(1)
+            params = dict(map(str.strip, x.split('=', 1)) for x in m.group(2).split(','))
+            res.append((group, option, params))
+        else:
+            res.append((group, option_params, {}))
+    return res
+
+
 def process_spec_file(specfile, dry_run):
     cp = read_spec_file(specfile)
     basedir = cp.get("main", "mixinsdir")
-    selections = cp.items("groups")
+    selections = split_params(cp.items("groups"))
     mixin_tree = read_mixin_tree(basedir)
     product_dir = os.path.dirname(specfile)
     file_map = {}
+    formatters = collections.defaultdict(ParameterFormatter)
     retval = True
 
     # Set up the file map since the config files in the product directory
@@ -260,7 +310,7 @@ def process_spec_file(specfile, dry_run):
 
         # Now check all the groups to see if they have a configuration
         # fragment to insert into the destination file
-        for group, option in selections:
+        for group, option, params in selections:
             optdir = mixin_tree[group]["options"][option]
             src_fn = os.path.join(optdir, src)
 
@@ -275,7 +325,7 @@ def process_spec_file(specfile, dry_run):
 
             for frag in frags:
                 if os.path.exists(frag):
-                    dest_lines = amend_file(dest_lines, frag, basedir)
+                    dest_lines = amend_file(dest_lines, frag, basedir, params, formatters[group])
 
         if dry_run:
             if cmp(dest_lines, orig_dest_lines) != 0:
@@ -284,6 +334,9 @@ def process_spec_file(specfile, dry_run):
         else:
             with open(dest_fn, "w") as fp:
                 fp.writelines(dest_lines)
+
+    for group, option, _ in selections:
+        formatters[group].error_on_unused_args(group + ": " + option)
 
     return retval
 
