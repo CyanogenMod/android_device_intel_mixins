@@ -239,6 +239,7 @@ def process_spec_file(specfile, dry_run):
     mixin_tree = read_mixin_tree(basedir)
     product_dir = os.path.dirname(specfile)
     file_map = {}
+    retval = True
 
     # Set up the file map since the config files in the product directory
     # may have slightly different names than what is in _FILE_LIST
@@ -279,12 +280,12 @@ def process_spec_file(specfile, dry_run):
         if dry_run:
             if cmp(dest_lines, orig_dest_lines) != 0:
                 warning("{} is out of date".format(dest_fn))
-                return False
+                retval = False
         else:
             with open(dest_fn, "w") as fp:
                 fp.writelines(dest_lines)
 
-    return True
+    return retval
 
 
 def find_all_spec_files(basepath):
