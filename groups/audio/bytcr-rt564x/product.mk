@@ -10,12 +10,13 @@ PRODUCT_PACKAGES += \
     libroute-subsystem \
     libfs-subsystem \
     libtinyalsa-subsystem \
-    libtinyalsa_custom-subsystem \
+    libtinyalsa_custom-subsystem
 
 # Extended Audio HALs
 PRODUCT_PACKAGES += \
     audio.r_submix.default \
-    audio.hdmi.$(TARGET_BOARD_PLATFORM)
+    audio.hdmi.$(TARGET_BOARD_PLATFORM) \
+    audio.usb.default
 
 # parameter-framework debug/tuning/engineering
 PRODUCT_PACKAGES_ENG += \
