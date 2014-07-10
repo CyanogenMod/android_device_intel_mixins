@@ -4,7 +4,7 @@ PRODUCT_PACKAGES_DEBUG += \
          tinyplay \
          tinycap
 
-# Audio HAL
+# Audio Primary HAL
 PRODUCT_PACKAGES += \
     audio_hal_configurable \
     libroute-subsystem \
@@ -12,9 +12,10 @@ PRODUCT_PACKAGES += \
     libtinyalsa-subsystem \
     libtinyalsa_custom-subsystem \
 
-# remote submix audio for wifi display
+# Extended Audio HALs
 PRODUCT_PACKAGES += \
-    audio.r_submix.default
+    audio.r_submix.default \
+    audio.hdmi.$(TARGET_BOARD_PLATFORM)
 
 # parameter-framework debug/tuning/engineering
 PRODUCT_PACKAGES_ENG += \
