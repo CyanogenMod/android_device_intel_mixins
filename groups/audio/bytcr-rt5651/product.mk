@@ -15,7 +15,7 @@ PRODUCT_PACKAGES += \
 # Extended Audio HALs
 PRODUCT_PACKAGES += \
     audio.r_submix.default \
-    audio.hdmi.$(TARGET_DEVICE)
+    audio.hdmi.$(TARGET_BOARD_PLATFORM)
 
 # parameter-framework debug/tuning/engineering
 PRODUCT_PACKAGES_ENG += \
