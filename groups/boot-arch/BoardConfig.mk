@@ -4,7 +4,7 @@
 
 # Alternate mkbootimg implementation which can sign boot images
 # with a provided key
-BOARD_CUSTOM_MKBOOTIMG := $(HOST_OUT_EXECUTABLES)/mkbootimg_secure
+BOARD_CUSTOM_MKBOOTIMG := out/host/linux-x86/bin/mkbootimg_secure
 
 # Sign boot images with the "vendor" key which is embedded within
 # the UEFI shim. Boot image verification only enforced if Secure
