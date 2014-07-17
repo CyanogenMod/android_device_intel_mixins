@@ -172,7 +172,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
         if verbose:
             warning("group {} exists but not specified, using default option".format(group))
         if "default" not in mixin_tree[group]["options"]:
-            if not silence:
+            if verbose:
                 policy_error("group {} doesn't have a default option!".format(group))
         else:
             returned_selections.append((group, "default", {}))
