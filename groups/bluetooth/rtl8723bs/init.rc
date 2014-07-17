@@ -18,8 +18,8 @@ on post-fs-data
     mkdir /data/misc/dhcp 0770 dhcp system
 
 service hciattach-rtk /system/bin/hciattach /dev/ttyS1 rtk_h5
-    user root
-    group root
+    user bluetooth
+    group bluetooth
     oneshot
 
 service dhcpcd_bt-pan /system/bin/dhcpcd -ABKL
