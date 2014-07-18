@@ -57,8 +57,6 @@ TARGET_RECOVERY_UPDATER_LIBS := libupdater_esp
 # libgpt_static is needed by libupdater_esp
 TARGET_RECOVERY_UPDATER_EXTRA_LIBS := libcommon_recovery libgpt_static
 
-TARGET_RECOVERY_UI_LIB := libgmin_recovery_ui
-
 # By default recovery minui expects RGBA framebuffer
 # also affects UI in Userfastboot
 TARGET_RECOVERY_PIXEL_FORMAT := "BGRA_8888"
