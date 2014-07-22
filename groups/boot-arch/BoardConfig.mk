@@ -10,23 +10,29 @@ else
 endif
 LOADER_PREBUILT := hardware/intel/efi_prebuilts/
 
-# EFI binaries that go in the installed device's EFI system partition
-BOARD_EFI_MODULES := \
-    $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/shim.efi \
-    $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/MokManager.efi \
-    $(LOADER_PREBUILT)/gummiboot/$(LOADER_TYPE)/gummiboot.efi
 
-# EFI binaries that go in the bootable USB fastboot image
-BOARD_FASTBOOT_USB_EFI_MODULES := \
-    $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/shim.efi \
+kernelflinger := $(LOADER_PREBUILT)/gummiboot/$(LOADER_TYPE)/gummiboot.efi
+
+ifeq ($(BOARD_USE_UEFI_SHIM),true)
+
+# EFI binaries that go in the installed device's EFI system partition
+BOARD_FIRST_STAGE_LOADER := \
+    $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/shim.efi
+
+BOARD_EXTRA_EFI_MODULES := \
     $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/MokManager.efi \
-    $(LOADER_PREBUILT)/gummiboot/$(LOADER_TYPE)/gummiboot.efi \
-    $(LOADER_PREBUILT)/efitools/$(LOADER_TYPE)/LockDown.efi \
-    $(LOADER_PREBUILT)/efitools/$(LOADER_TYPE)/production-test/LockDownPT.efi
+    $(kernelflinger)
 
 # We need gymmiboot.efi packaged inside the fastboot boot image to be
 # able to work with MCG's EFI fastboot stub
-USERFASTBOOT_2NDBOOTLOADER := $(LOADER_PREBUILT)/gummiboot/$(LOADER_TYPE)/gummiboot.efi
+USERFASTBOOT_2NDBOOTLOADER := $(kernelflinger)
+
+else
+
+BOARD_FIRST_STAGE_LOADER := $(kernelflinger)
+BOARD_EXTRA_EFI_MODULES :=
+USERFASTBOOT_2NDBOOTLOADER :=
+endif
 
 #
 # -- OTA RELATED DEFINES --

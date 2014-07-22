@@ -21,29 +21,25 @@ else
 FILE_NAME_TAG := $(BUILD_NUMBER)
 endif
 
-loader_entries := $(wildcard device/intel/common/boot/loader/entries/*.conf)
-loader_config := device/intel/common/boot/loader/loader.conf
-
 intermediates := $(call intermediates-dir-for,PACKAGING,bootloader_zip)
 bootloader_zip := $(intermediates)/bootloader.zip
 $(bootloader_zip): intermediates := $(intermediates)
 $(bootloader_zip): efi_root := $(intermediates)/root
 $(bootloader_zip): \
 		$(TARGET_DEVICE_DIR)/AndroidBoard.mk \
-		$(loader_entries) \
-		$(loader_config) \
-		$(BOARD_EFI_MODULES) \
+		$(BOARD_FIRST_STAGE_LOADER) \
+		$(BOARD_EXTRA_EFI_MODULES) \
 		| $(ACP) \
 
 	$(hide) rm -rf $(efi_root)
 	$(hide) rm -f $@
 	$(hide) mkdir -p $(efi_root)
-	$(hide) mkdir -p $(efi_root)/loader/entries
-	$(hide) $(ACP) $(loader_entries) $(efi_root)/loader/entries/
-	$(hide) $(ACP) $(loader_config) $(efi_root)/loader/loader.conf
 	$(hide) mkdir -p $(efi_root)/EFI/BOOT
-	$(hide) $(ACP) $(BOARD_EFI_MODULES) $(efi_root)/
-	$(hide) $(ACP) $(efi_root)/shim.efi $(efi_root)/EFI/BOOT/$(efi_default_name)
+ifneq ($(BOARD_EXTRA_EFI_MODULES),)
+	$(hide) $(ACP) $(BOARD_EXTRA_EFI_MODULES) $(efi_root)/
+endif
+	$(hide) $(ACP) $(BOARD_FIRST_STAGE_LOADER) $(efi_root)/loader.efi
+	$(hide) $(ACP) $(BOARD_FIRST_STAGE_LOADER) $(efi_root)/EFI/BOOT/$(efi_default_name)
 	$(hide) (cd $(efi_root) && zip -qry ../$(notdir $@) .)
 
 bootloader_metadata := $(intermediates)/bootloader-size.txt
@@ -71,43 +67,15 @@ droidcore: $(bootloader_bin)
 bootloader: $(bootloader_bin)
 $(call dist-for-goals,droidcore,$(bootloader_bin):$(TARGET_PRODUCT)-bootloader-$(FILE_NAME_TAG))
 
-usb_loader_entries := $(wildcard device/intel/common/boot/loader-usb/entries/*.conf)
-usb_loader_config := device/intel/common/boot/loader-usb/loader.conf
-
-intermediates := $(call intermediates-dir-for,PACKAGING,loader_usb_zip)
-loader_usb_zip := $(intermediates)/loader_usb.zip
-
-$(loader_usb_zip): intermediates := $(intermediates)
-$(loader_usb_zip): efi_root := $(intermediates)/root
-$(loader_usb_zip): \
-		$(TARGET_DEVICE_DIR)/AndroidBoard.mk \
-		$(usb_loader_entries) \
-		$(usb_loader_config) \
-		$(BOARD_FASTBOOT_USB_EFI_MODULES) \
-		| $(ACP) \
-
-	$(hide) rm -rf $(efi_root)
-	$(hide) rm -f $@
-	$(hide) mkdir -p $(efi_root)
-	$(hide) mkdir -p $(efi_root)/loader/entries
-	$(hide) $(ACP) $(usb_loader_entries) $(efi_root)/loader/entries/
-	$(hide) $(ACP) $(usb_loader_config) $(efi_root)/loader/loader.conf
-	$(hide) $(ACP) $(BOARD_FASTBOOT_USB_EFI_MODULES) $(efi_root)
-	$(hide) mkdir -p $(efi_root)/EFI/BOOT
-	$(hide) $(ACP) $(efi_root)/shim.efi $(efi_root)/EFI/BOOT/$(efi_default_name)
-	$(hide) (cd $(efi_root) && zip -qry ../$(notdir $@) .)
-
-INSTALLED_RADIOIMAGE_TARGET += $(loader_usb_zip)
-
 fastboot_usb_bin := $(PRODUCT_OUT)/fastboot-usb.img
 $(fastboot_usb_bin): \
-		$(loader_usb_zip) \
+		$(bootloader_zip) \
 		$(PRODUCT_OUT)/fastboot.img \
-		device/intel/build/fastboot_usb_from_zip \
+		device/intel/build/bootable_usb_from_zip \
 
-	$(hide) device/intel/build/fastboot_usb_from_zip \
-		--zipfile $(loader_usb_zip) \
-		--fastboot $(PRODUCT_OUT)/fastboot.img $@
+	$(hide) device/intel/build/bootable_usb_from_zip \
+		--zipfile $(bootloader_zip) \
+		--bootimage $(PRODUCT_OUT)/fastboot.img $@
 
 # Build when 'make' is run with no args
 droidcore: $(fastboot_usb_bin)
