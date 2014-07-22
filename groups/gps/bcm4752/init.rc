@@ -1,10 +1,22 @@
 on post-fs-data
     # Create data folder for GPS
     mkdir /data/gps 0770 gps system
+    setprop ro.spid.gps.RfType GL_RF_4752_BRCM
+    setprop ro.spid.gps.FrqPlan FRQ_PLAN_26MHZ_2PPM
 
 on boot
     # Enable Power control for GPS chip using RFKILL driver
     insmod /system/lib/modules/rfkill-gpio.ko
+
+
+on property:ro.boot.spid=0000:0000:*:0008:?000:000[0-7]
+    setprop ro.spid.gps.FrqPlan FRQ_PLAN_26MHZ_2PPM
+
+
+on property:ro.boot.spid=0000:0000:*:0008:?001:0000
+    setprop ro.spid.gps.RfType GL_RF_4752_BRCM
+    setprop ro.spid.gps.FrqPlan FRQ_PLAN_26MHZ_2PPM
+
 
 service gpsd /system/bin/gpsd -c /system/etc/gps.xml
     class main
