@@ -1,4 +1,4 @@
-service dhcpcd_eth0 /system/bin/dhcpcd -ABDKL
+service dhcpcd_eth0 /system/bin/dhcpcd -ABDKL eth0
     class main
     disabled
     oneshot
