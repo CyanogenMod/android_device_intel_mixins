@@ -1,0 +1,28 @@
+                             debug-logs
+                             ==========
+
+debug-logs group provides file system logging. This allows to collect
+logs from Android continuously. This feature is mandatory to catch
+bugs in stabilisation phase where they are more spurious and do not
+always trigger crashes. It is also valuable to
+eMTB/MTBF/SST/DSP/dogfooding users for post-mortem analysis.
+
+Associated service is 'ap_logfs', which executes logcat to
+continuously flush all Android logs to file. If it is not started at
+boot, do it manually :
+ # start ap_logfs
+
+Logs file is available at '/data/logs/aplog'.
+
+
+Debug only mixins consideration
+-------------------------------
+
+This feature is part of 'debug-*' groups, which are dedicated to debug
+and product stabilisation, thus do not target final products and user
+builds.
+
+As per build variant (eng, userdebug, user) dedicated files feature is
+not available with mixins, per option files are provided in
+'device/intel/common/debug/' folder and will be included at build time
+regarding selected option.
