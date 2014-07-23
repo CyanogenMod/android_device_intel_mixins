@@ -1,0 +1,7 @@
+on post-fs
+    insmod /system/lib/modules/bmm050.ko
+    setprop ro.iio.magn.name "BMC150 Magnetometer"
+    setprop ro.iio.magn.vendor "Bosch Sensortec"
+    setprop ro.iio.magn.max_range 2500
+    setprop ro.iio.magn.resolution 0.3
+    setprop ro.iio.magn.power 2
