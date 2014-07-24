@@ -6,5 +6,5 @@ on post-fs
     setprop ro.iio.illuminance.max_range 167000
     setprop ro.iio.illuminance.resolution 1
     setprop ro.iio.illuminance.power .001
-    setprop ro.iio.illuminance.illumincalib 7400
+    setprop ro.iio.illuminance.illumincalib $[scale]
 
