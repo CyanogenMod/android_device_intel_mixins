@@ -11,9 +11,9 @@ endif
 LOADER_PREBUILT := hardware/intel/efi_prebuilts/
 
 
-kernelflinger := $(LOADER_PREBUILT)/gummiboot/$(LOADER_TYPE)/gummiboot.efi
 
 ifeq ($(BOARD_USE_UEFI_SHIM),true)
+kernelflinger := $(LOADER_PREBUILT)/kernelflinger/$(LOADER_TYPE)/kernelflinger.vendor.efi
 
 # EFI binaries that go in the installed device's EFI system partition
 BOARD_FIRST_STAGE_LOADER := \
@@ -23,11 +23,12 @@ BOARD_EXTRA_EFI_MODULES := \
     $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/MokManager.efi \
     $(kernelflinger)
 
-# We need gymmiboot.efi packaged inside the fastboot boot image to be
+# We need kernelflinger.efi packaged inside the fastboot boot image to be
 # able to work with MCG's EFI fastboot stub
 USERFASTBOOT_2NDBOOTLOADER := $(kernelflinger)
 
 else
+kernelflinger := $(LOADER_PREBUILT)/kernelflinger/$(LOADER_TYPE)/kernelflinger.db.efi
 
 BOARD_FIRST_STAGE_LOADER := $(kernelflinger)
 BOARD_EXTRA_EFI_MODULES :=
