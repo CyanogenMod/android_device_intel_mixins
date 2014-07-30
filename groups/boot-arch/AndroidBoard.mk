@@ -55,11 +55,14 @@ INSTALLED_RADIOIMAGE_TARGET += $(BOARD_GPT_INI) $(bootloader_zip) $(bootloader_m
 bootloader_bin := $(PRODUCT_OUT)/bootloader
 $(bootloader_bin): \
 		$(bootloader_zip) \
+		$(PRODUCT_OUT)/fastboot.img \
 		device/intel/build/bootloader_from_zip \
 
 	$(hide) device/intel/build/bootloader_from_zip \
-		-i $(BOARD_BOOTLOADER_PARTITION_SIZE) \
-		-z $(bootloader_zip) $@
+		--size $(BOARD_BOOTLOADER_PARTITION_SIZE) \
+		--fastboot $(PRODUCT_OUT)/fastboot.img \
+		--zipfile $(bootloader_zip) \
+		$@
 
 droidcore: $(bootloader_bin)
 
@@ -71,11 +74,14 @@ fastboot_usb_bin := $(PRODUCT_OUT)/fastboot-usb.img
 $(fastboot_usb_bin): \
 		$(bootloader_zip) \
 		$(PRODUCT_OUT)/fastboot.img \
-		device/intel/build/bootable_usb_from_zip \
+		device/intel/build/bootloader_from_zip \
 
-	$(hide) device/intel/build/bootable_usb_from_zip \
+	$(hide) device/intel/build/bootloader_from_zip \
+		--fastboot $(PRODUCT_OUT)/fastboot.img \
 		--zipfile $(bootloader_zip) \
-		--bootimage $(PRODUCT_OUT)/fastboot.img $@
+		--extra-size 10485760 \
+		--bootable \
+		$@
 
 # Build when 'make' is run with no args
 droidcore: $(fastboot_usb_bin)
