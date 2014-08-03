@@ -1,0 +1,11 @@
+# The atomisp driver is sensitive to initialization order (it must be
+# loaded after the sensor drivers) and does a request_firmware() out
+# of the module init function which will deadlock init.  Load it from
+# a service instead.
+
+service atomisp-init /system/bin/sh /system/etc/init.atomisp.sh
+    oneshot
+    disabled
+
+on boot
+    start atomisp-init
