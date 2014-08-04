@@ -7,6 +7,9 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
     frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
 
+# HAL config file
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/camera3_profiles.xml:system/etc/camera3_profiles.xml
+
 # Camera HAL (camera3hal)
 PRODUCT_PACKAGES += camera.$(TARGET_BOARD_PLATFORM)
 
