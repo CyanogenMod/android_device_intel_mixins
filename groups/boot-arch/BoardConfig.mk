@@ -10,10 +10,15 @@ else
 endif
 LOADER_PREBUILT := hardware/intel/efi_prebuilts/
 
-
+kernelflinger_prefix := $(LOADER_PREBUILT)/kernelflinger/$(LOADER_TYPE)/kernelflinger
 
 ifeq ($(BOARD_USE_UEFI_SHIM),true)
-kernelflinger := $(LOADER_PREBUILT)/kernelflinger/$(LOADER_TYPE)/kernelflinger.vendor.efi
+
+ifeq ($(TARGET_BUILD_VARIANT),eng)
+kernelflinger := $(kernelflinger_prefix).insecure.efi
+else
+kernelflinger := $(kernelflinger_prefix).vendor.efi
+endif
 
 # EFI binaries that go in the installed device's EFI system partition
 BOARD_FIRST_STAGE_LOADER := \
@@ -27,8 +32,13 @@ BOARD_EXTRA_EFI_MODULES := \
 # able to work with MCG's EFI fastboot stub
 USERFASTBOOT_2NDBOOTLOADER := $(kernelflinger)
 
+else # !BOARD_USE_UEFI_SHIM
+
+ifeq ($(TARGET_BUILD_VARIANT),eng)
+kernelflinger := $(kernelflinger_prefix).insecure.efi
 else
-kernelflinger := $(LOADER_PREBUILT)/kernelflinger/$(LOADER_TYPE)/kernelflinger.db.efi
+kernelflinger := $(kernelflinger_prefix).db.efi
+endif
 
 BOARD_FIRST_STAGE_LOADER := $(kernelflinger)
 BOARD_EXTRA_EFI_MODULES :=
