@@ -21,6 +21,12 @@ else
 FILE_NAME_TAG := $(BUILD_NUMBER)
 endif
 
+# We stash a copy of BIOSUPDATE.fv so the FW sees it, applies the
+# update, and deletes the file. Follows Google's desire to update
+# all bootloader pieces with a single "fastboot flash bootloader"
+# command. We place the fastboot.img in the ESP for the same reason.
+# Since it gets deleted we can't do incremental updates of it, we
+# keep a copy in the system partition for this purpose.
 intermediates := $(call intermediates-dir-for,PACKAGING,bootloader_zip)
 bootloader_zip := $(intermediates)/bootloader.zip
 $(bootloader_zip): intermediates := $(intermediates)
@@ -29,6 +35,7 @@ $(bootloader_zip): \
 		$(TARGET_DEVICE_DIR)/AndroidBoard.mk \
 		$(BOARD_FIRST_STAGE_LOADER) \
 		$(BOARD_EXTRA_EFI_MODULES) \
+		$(BOARD_SFU_UPDATE) \
 		| $(ACP) \
 
 	$(hide) rm -rf $(efi_root)
@@ -37,6 +44,9 @@ $(bootloader_zip): \
 	$(hide) mkdir -p $(efi_root)/EFI/BOOT
 ifneq ($(BOARD_EXTRA_EFI_MODULES),)
 	$(hide) $(ACP) $(BOARD_EXTRA_EFI_MODULES) $(efi_root)/
+endif
+ifneq ($(BOARD_SFU_UPDATE),)
+	$(hide) $(ACP) $(BOARD_SFU_UPDATE) $(efi_root)/BIOSUPDATE.fv
 endif
 	$(hide) $(ACP) $(BOARD_FIRST_STAGE_LOADER) $(efi_root)/loader.efi
 	$(hide) $(ACP) $(BOARD_FIRST_STAGE_LOADER) $(efi_root)/EFI/BOOT/$(efi_default_name)
