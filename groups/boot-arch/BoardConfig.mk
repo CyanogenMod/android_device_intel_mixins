@@ -2,15 +2,6 @@
 # -- SECURE BOOT --
 #
 
-# Alternate mkbootimg implementation which can sign boot images
-# with a provided key
-BOARD_CUSTOM_MKBOOTIMG := out/host/linux-x86/bin/mkbootimg_secure
-
-# Sign boot images with the "vendor" key which is embedded within
-# the UEFI shim. Boot image verification only enforced if Secure
-# Boot is turned on in the BIOS.
-BOARD_MKBOOTIMG_ARGS := --signhash sha256 \
-	--signkey device/intel/build/testkeys/vendor.pk8
 
 ifeq ($(TARGET_UEFI_ARCH),i386)
     LOADER_TYPE := linux-x86
