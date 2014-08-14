@@ -7,6 +7,14 @@ on post-fs-data
 on boot
     # Enable Power control for GPS chip using RFKILL driver
     insmod /system/lib/modules/rfkill-gpio.ko
+    chmod 0660 /dev/$[tty]
+    chown gps system /dev/$[tty]
+    chmod 0660 /sys/class/tty/$[tty]/../../power/control
+    chown system system /sys/class/tty/$[tty]/../../power/control
+    write /sys/class/tty/$[tty]/../../power/control auto
+    mkdir /dev/gps 0770 gps system
+    symlink /dev/$[tty] /dev/gps/ttyGPS
+    symlink /sys/class/tty/$[tty]/../../power/control /dev/gps/ttyGPSPowerControl
 
 
 on property:ro.boot.spid=0000:0000:*:0008:?000:000[0-7]
