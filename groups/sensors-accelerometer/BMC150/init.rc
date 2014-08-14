@@ -1,5 +1,5 @@
 on post-fs
-    insmod /system/lib/modules/bmc150_accel.ko
+    insmod /system/lib/modules/bmc150-accel.ko
     setprop ro.iio.accel.name "BMC150 Accelerometer"
     setprop ro.iio.accel.vendor "Bosch Sensortec"
     setprop ro.iio.accel.max_range 16
