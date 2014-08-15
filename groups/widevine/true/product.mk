@@ -20,3 +20,5 @@ PRODUCT_PACKAGES += libwvdrmengine
 PRODUCT_PACKAGES_ENG += ExoPlayerDemo
 
 PRODUCT_PACKAGES += liboemcrypto
+
+PRODUCT_PACKAGES += libmeimm libsecmem
