@@ -94,3 +94,8 @@ TARGET_USE_USERFASTBOOT := true
 
 TARGET_BOOTLOADER_BOARD_NAME := $(TARGET_DEVICE)
 
+#
+# Trusted Factory Reset - persistent partition
+#
+DEVICE_PACKAGE_OVERLAYS += device/intel/common/boot/overlay
+ADDITIONAL_DEFAULT_PROPERTIES += ro.frp.pst=/dev/block/by-name/android_persistent
