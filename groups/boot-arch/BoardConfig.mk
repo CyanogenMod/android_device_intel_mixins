@@ -15,7 +15,7 @@ kernelflinger_prefix := $(LOADER_PREBUILT)/kernelflinger/$(LOADER_TYPE)/kernelfl
 ifeq ($(BOARD_USE_UEFI_SHIM),true)
 
 ifeq ($(TARGET_BUILD_VARIANT),eng)
-kernelflinger := $(kernelflinger_prefix).insecure.efi
+kernelflinger := $(kernelflinger_prefix).insecure.vendor.efi
 else
 kernelflinger := $(kernelflinger_prefix).vendor.efi
 endif
@@ -35,7 +35,7 @@ USERFASTBOOT_2NDBOOTLOADER := $(kernelflinger)
 else # !BOARD_USE_UEFI_SHIM
 
 ifeq ($(TARGET_BUILD_VARIANT),eng)
-kernelflinger := $(kernelflinger_prefix).insecure.efi
+kernelflinger := $(kernelflinger_prefix).insecure.db.efi
 else
 kernelflinger := $(kernelflinger_prefix).db.efi
 endif
