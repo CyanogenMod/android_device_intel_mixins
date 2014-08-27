@@ -142,6 +142,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
 
     groups_seen = []
     returned_selections = []
+    default_groups = []
 
     for (group, option, params) in selections:
         if group in groups_seen:
@@ -169,13 +170,15 @@ def validate_selections(selections, mixin_tree, verbose=False):
     # default options, or generate an error if there is no default
     unspecified_groups = sorted(set(mixin_tree.keys()) - set(groups_seen))
     for group in unspecified_groups:
-        if verbose:
-            warning("group {} exists but not specified, using default option".format(group))
+        default_groups.append(group)
         if "default" not in mixin_tree[group]["options"]:
             if verbose:
                 policy_error("group {} doesn't have a default option!".format(group))
         else:
             returned_selections.append((group, "default", {}))
+
+    if verbose:
+        warning("default groups used: " + " ".join(default_groups))
 
     return returned_selections
 
@@ -298,6 +301,9 @@ def process_spec_file(specfile, dry_run):
             file_map[fname] = cp.get("mapping", fname)
         else:
             file_map[fname] = fname
+
+    if not dry_run:
+        warning("processing {}".format(specfile))
 
     # After this, all default selections should be populated
     # and the selections should be sane
