@@ -167,7 +167,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
 
     # The spec file may have omitted some groups. If so, pull in their
     # default options, or generate an error if there is no default
-    unspecified_groups = set(mixin_tree.keys()) - set(groups_seen)
+    unspecified_groups = sorted(set(mixin_tree.keys()) - set(groups_seen))
     for group in unspecified_groups:
         if verbose:
             warning("group {} exists but not specified, using default option".format(group))
