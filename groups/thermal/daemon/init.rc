@@ -11,4 +11,7 @@ on boot
     chown system system /sys/class/powercap/intel-rapl:0/enabled
     chown system system /sys/class/powercap/intel-rapl:0/constraint_0_power_limit_uw
 
+on post-fs-data
+    # daemon running directory
+    mkdir /data/thermal-daemon 0755 system system
 
