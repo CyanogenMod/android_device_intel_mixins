@@ -1,7 +1,8 @@
 service keymaster_meid /system/bin/keymaster_meid
     # need to be in core class to be started with vold
     class core
-    user keystore
-    group keystore drmrpc
+    # service will drop to keystore user after capabilities set
+    user root
+    group keystore drmrpc system
     socket keymaster_mei stream 0660 keystore drmrpc
 
