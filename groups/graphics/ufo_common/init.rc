@@ -10,3 +10,6 @@ on post-fs-data
     mkdir /data/system 0770 system system
     restart ufo-init
 
+on boot
+    mkdir /mnt/libreg 0700 root root
+    mount tmpfs tmpfs /mnt/libreg rw,noatime,noexec,size=4096,mode=0700
