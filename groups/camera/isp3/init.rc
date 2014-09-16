@@ -8,4 +8,5 @@ service atomisp-init /system/bin/sh /system/etc/init.atomisp.sh
     disabled
 
 on boot
+    setprop camera.disable_zsl_mode 1
     start atomisp-init
