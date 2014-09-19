@@ -6,4 +6,4 @@ on post-fs
     setprop ro.iio.anglvel.max_range 2000
     setprop ro.iio.anglvel.resolution 0.1
     setprop ro.iio.anglvel.power 18
-    setprop ro.iio.anglvel.quirks "terse, noisy"
+    setprop ro.iio.anglvel.quirks "continuous,noisy"
