@@ -27,7 +27,7 @@ on property:bluetooth.hwcfg=stop
 
 service rfkill-init /system/bin/sh /system/etc/init.rfkill.sh
     disabled
-    onshot
+    oneshot
 
 service btcfg /system/bin/hciattach -n /dev/ttyS1 rtk_h5
     user bluetooth
