@@ -13,11 +13,3 @@ service pstore-clean /system/bin/pstore-clean
     class late_start
     oneshot
 
-service setup_fs /system/bin/setup_fs \
-        /dev/block/by-name/android_data \
-        /dev/block/by-name/android_cache
-    class core
-    user root
-    group root
-    oneshot
-
