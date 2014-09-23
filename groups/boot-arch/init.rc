@@ -1,7 +1,3 @@
-on init
-    #Set up the persistent data block for trusted factory reset
-    mkdir /persistent 0660 system system
-
 on fs
     # ro.boot.hardware = TARGET_PRODUCT (set in kernel command line
     # as androidboot.hardware). Mount all the filesystems as specified
