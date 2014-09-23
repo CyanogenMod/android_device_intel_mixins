@@ -82,7 +82,9 @@ BOARD_CACHEIMAGE_PARTITION_SIZE ?= 268435456
 ifneq ($(BOARD_USERDATAIMAGE_PARTITION_SIZE),)
 BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
 else
+ifneq ($(CALLED_FROM_SETUP),true)
 $(warning "BOARD_USERDATAIMAGE_PARTITION_SIZE not defined, please specify at the top of your device's BoardConfig.mk")
+endif
 endif
 
 TARGET_USERIMAGES_USE_EXT4 := true
