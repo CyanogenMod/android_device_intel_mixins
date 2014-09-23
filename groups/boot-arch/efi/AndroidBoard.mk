@@ -7,8 +7,10 @@
 
 ifeq ($(TARGET_UEFI_ARCH),i386)
 efi_default_name := bootia32.efi
+LOADER_TYPE := linux-x86
 else
 efi_default_name := bootx64.efi
+LOADER_TYPE := linux-x86_64
 endif
 
 # (pulled from build/core/Makefile as this gets defined much later)
@@ -19,6 +21,31 @@ ifneq "" "$(filter eng.%,$(BUILD_NUMBER))"
 FILE_NAME_TAG := eng.$(USER)
 else
 FILE_NAME_TAG := $(BUILD_NUMBER)
+endif
+
+LOADER_PREBUILT := hardware/intel/efi_prebuilts/
+
+kernelflinger := $(PRODUCT_OUT)/efi/kernelflinger.efi
+
+ifeq ($(BOARD_USE_UEFI_SHIM),true)
+
+# EFI binaries that go in the installed device's EFI system partition
+BOARD_FIRST_STAGE_LOADER := \
+    $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/shim.efi
+
+BOARD_EXTRA_EFI_MODULES := \
+    $(LOADER_PREBUILT)/uefi_shim/$(LOADER_TYPE)/MokManager.efi \
+    $(kernelflinger)
+
+# We need kernelflinger.efi packaged inside the fastboot boot image to be
+# able to work with MCG's EFI fastboot stub
+USERFASTBOOT_2NDBOOTLOADER := $(kernelflinger)
+
+else # !BOARD_USE_UEFI_SHIM
+
+BOARD_FIRST_STAGE_LOADER := $(kernelflinger)
+BOARD_EXTRA_EFI_MODULES :=
+USERFASTBOOT_2NDBOOTLOADER :=
 endif
 
 # We stash a copy of BIOSUPDATE.fv so the FW sees it, applies the
@@ -57,7 +84,7 @@ $(bootloader_metadata):
 	$(hide) mkdir -p $(dir $@)
 	$(hide) echo $(BOARD_BOOTLOADER_PARTITION_SIZE) > $@
 
-INSTALLED_RADIOIMAGE_TARGET += $(BOARD_GPT_INI) $(bootloader_zip) $(bootloader_metadata)
+INSTALLED_RADIOIMAGE_TARGET += $(bootloader_zip) $(bootloader_metadata)
 
 # Rule to create $(OUT)/bootloader image, binaries within are signed with
 # testing keys
@@ -65,16 +92,14 @@ INSTALLED_RADIOIMAGE_TARGET += $(BOARD_GPT_INI) $(bootloader_zip) $(bootloader_m
 bootloader_bin := $(PRODUCT_OUT)/bootloader
 $(bootloader_bin): \
 		$(bootloader_zip) \
-		$(PRODUCT_OUT)/fastboot.img \
+		$(BOOTLOADER_ADDITIONAL_DEPS) \
 		device/intel/build/bootloader_from_zip \
 
 	$(hide) device/intel/build/bootloader_from_zip \
 		--size $(BOARD_BOOTLOADER_PARTITION_SIZE) \
-		--fastboot $(PRODUCT_OUT)/fastboot.img \
+		$(BOOTLOADER_ADDITIONAL_ARGS) \
 		--zipfile $(bootloader_zip) \
 		$@
-
-INSTALLED_RADIOIMAGE_TARGET += $(PRODUCT_OUT)/fastboot.img
 
 droidcore: $(bootloader_bin)
 
@@ -85,11 +110,11 @@ $(call dist-for-goals,droidcore,$(bootloader_bin):$(TARGET_PRODUCT)-bootloader-$
 fastboot_usb_bin := $(PRODUCT_OUT)/fastboot-usb.img
 $(fastboot_usb_bin): \
 		$(bootloader_zip) \
-		$(PRODUCT_OUT)/fastboot.img \
+		$(BOOTLOADER_ADDITIONAL_DEPS) \
 		device/intel/build/bootloader_from_zip \
 
 	$(hide) device/intel/build/bootloader_from_zip \
-		--fastboot $(PRODUCT_OUT)/fastboot.img \
+		$(BOOTLOADER_ADDITIONAL_ARGS) \
 		--zipfile $(bootloader_zip) \
 		--extra-size 10485760 \
 		--bootable \
@@ -108,4 +133,19 @@ $(call dist-for-goals,droidcore,$(BOARD_SFU_UPDATE):$(TARGET_PRODUCT)-sfu-$(FILE
 endif
 
 $(call dist-for-goals,droidcore,$(LOADER_PREBUILT)/efitools/$(LOADER_TYPE)/LockDown.efi:LockDown.efi)
+
+ifeq ($[fastboot],efi)
+# For fastboot-uefi we need to parse gpt.ini into
+# a binary format.
+
+GPT_INI2BIN := ./device/intel/common/gpt_bin/gpt_ini2bin.py
+
+$(BOARD_GPT_BIN): $(BOARD_GPT_INI)
+	$(hide) $(GPT_INI2BIN) $< > $@
+	$(hide) echo GEN $(notdir $@)
+
+else
+INSTALLED_RADIOIMAGE_TARGET += $(PRODUCT_OUT)/fastboot.img
+endif
+
 

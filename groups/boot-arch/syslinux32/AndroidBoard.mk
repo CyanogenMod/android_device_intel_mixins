@@ -99,3 +99,5 @@ userfastboot-usb: $(fastboot_usb_bin)
 
 $(call dist-for-goals,droidcore,$(fastboot_usb_bin):$(TARGET_PRODUCT)-fastboot-usb-$(FILE_NAME_TAG).img)
 
+INSTALLED_RADIOIMAGE_TARGET += $(PRODUCT_OUT)/fastboot.img
+
