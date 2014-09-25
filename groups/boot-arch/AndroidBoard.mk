@@ -74,6 +74,8 @@ $(bootloader_bin): \
 		--zipfile $(bootloader_zip) \
 		$@
 
+INSTALLED_RADIOIMAGE_TARGET += $(PRODUCT_OUT)/fastboot.img
+
 droidcore: $(bootloader_bin)
 
 .PHONY: bootloader
