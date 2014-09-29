@@ -1,0 +1,16 @@
+# Default (fallback) location of generic FDP conf files
+# (if needed, can be overridden in board's device.mk
+# with board-customized conf file location)
+NFC_CONF_PATH ?= device/intel/common/nfc/fdp
+
+# FDP-specific configuration files
+PRODUCT_COPY_FILES += \
+    $(NFC_CONF_PATH)/libnfc-brcm.conf:system/etc/libnfc-brcm.conf
+
+# FDP-specific NFC packages
+PRODUCT_PACKAGES += \
+    nfc_nci.fdp.default \
+    PatchRAM \
+    PatchOTP \
+    PatchRamProd
+
