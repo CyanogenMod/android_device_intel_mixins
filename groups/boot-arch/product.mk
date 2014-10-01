@@ -6,3 +6,6 @@ PRODUCT_PACKAGES += \
 	setup_fs \
 	pstore-clean
 
+PRODUCT_COPY_FILES += \
+	frameworks/native/data/etc/android.software.verified_boot.xml:system/etc/permissions/android.software.verified_boot.xml
+
