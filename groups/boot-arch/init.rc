@@ -13,3 +13,8 @@ service pstore-clean /system/bin/pstore-clean
     class late_start
     oneshot
 
+service watchdogd /sbin/watchdogd
+    user root
+    class core
+    oneshot
+    seclabel u:r:watchdogd:s0

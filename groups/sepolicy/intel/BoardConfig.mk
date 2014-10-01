@@ -22,4 +22,5 @@ BOARD_SEPOLICY_UNION := \
     userfastboot.te  \
     vold.te \
     wpa.te \
-    setup_fs.te
+    setup_fs.te \
+    watchdogd.te
