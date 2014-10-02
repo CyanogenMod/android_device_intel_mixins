@@ -1,0 +1,7 @@
+on boot
+    insmod /system/lib/modules/rfkill-gpio.ko
+    start rfkill-init
+
+service rfkill-init /system/bin/sh /system/etc/rfkill-init.sh
+    disabled
+    oneshot

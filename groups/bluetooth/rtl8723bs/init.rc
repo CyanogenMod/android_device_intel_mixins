@@ -3,7 +3,6 @@ on post-fs-data
     mkdir /data/misc/hcid 0770 bluetooth bluetooth
 
 on boot
-    insmod /system/lib/modules/rfkill-gpio.ko
     insmod /system/lib/modules/iptable_raw.ko
     insmod /system/lib/modules/ip6table_raw.ko
     insmod /system/lib/modules/8250_dw.ko
@@ -13,9 +12,6 @@ on boot
     chmod 0644 /sys/kernel/debug/bluetooth/l2cap_le_max_credits
     chmod 0644 /sys/kernel/debug/bluetooth/l2cap_le_default_mps
 
-    # Disable BT chip by default
-    start rfkill-init
-
 on post-fs-data
     mkdir /data/misc/dhcp 0770 dhcp system
 
@@ -24,10 +20,6 @@ on property:bluetooth.hwcfg=start
 
 on property:bluetooth.hwcfg=stop
     stop btcfg
-
-service rfkill-init /system/bin/sh /system/etc/init.rfkill.sh
-    disabled
-    oneshot
 
 service btcfg /system/bin/hciattach -n /dev/ttyS1 rtk_h5
     user bluetooth
