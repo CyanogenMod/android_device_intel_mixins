@@ -3,6 +3,7 @@ on post-fs-data
     mkdir /data/misc/hcid 0770 bluetooth bluetooth
 
 on boot
+    insmod /system/lib/modules/rfkill-gpio.ko
     insmod /system/lib/modules/iptable_raw.ko
     insmod /system/lib/modules/ip6table_raw.ko
     insmod /system/lib/modules/8250_dw.ko
