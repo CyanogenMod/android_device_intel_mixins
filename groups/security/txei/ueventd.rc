@@ -1,0 +1,5 @@
+# Used by HW-backed keystore
+/dev/mei                      0660   system     drmrpc
+
+# Used by WideVine
+/dev/meimm                    0660   system     drmrpc
