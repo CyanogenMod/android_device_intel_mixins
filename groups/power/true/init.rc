@@ -1,0 +1,26 @@
+on post-fs
+    mkdir /sys/fs/cgroup/cpuset
+    mount cgroup none /sys/fs/cgroup/cpuset cpuset
+    write /sys/fs/cgroup/cpuset/cgroup.clone_children 1
+
+    # Create group to be used by power hal
+    mkdir /sys/fs/cgroup/cpuset/power_hal 0770 root system
+    write /sys/fs/cgroup/cpuset/power_hal/cgroup.clone_children 1
+    chown system system /sys/fs/cgroup/cpuset/power_hal/cpuset.cpus
+
+    mkdir /sys/fs/cgroup/cpuset/power_hal/non_interactive 0770 root system
+    write /sys/fs/cgroup/cpuset/power_hal/non_interactive/cgroup.clone_children 1
+    chown system system /sys/fs/cgroup/cpuset/power_hal/non_interactive/cpuset.cpus
+
+on property:sys.power_hal.niproc=*
+    write /sys/fs/cgroup/cpuset/power_hal/non_interactive/cgroup.procs ${sys.power_hal.niproc}
+
+service power_hal_helper /system/vendor/bin/power_hal_helper
+    user system
+    group system
+    disabled
+    oneshot
+
+on property:init.svc.media=running
+    start power_hal_helper
+
