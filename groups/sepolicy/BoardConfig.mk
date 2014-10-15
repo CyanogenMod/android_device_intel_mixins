@@ -1,0 +1,39 @@
+# SELinux Policy
+BOARD_SEPOLICY_DIRS := device/intel/common/sepolicy
+BOARD_SEPOLICY_REPLACE := \
+    domain.te
+
+# please keep this list ordered
+BOARD_SEPOLICY_UNION := \
+    adbd.te \
+    bluetooth.te \
+    coreu.te \
+    device.te \
+    drmserver.te \
+    file_contexts \
+    file.te \
+    genfs_contexts \
+    gpsd.te \
+    hdcpd.te \
+    init_shell.te \
+    init.te \
+    kernel.te \
+    keymaster.te \
+    keystore.te \
+    mediaserver.te \
+    netd.te \
+    platform_app.te \
+    pstore-clean.te \
+    recovery.te \
+    service_contexts \
+    service.te \
+    setup_fs.te \
+    shell.te \
+    surfaceflinger.te \
+    system_app.te \
+    system_server.te \
+    thermal.te \
+    untrusted_app.te \
+    userfastboot.te \
+    vold.te \
+    wpa.te
