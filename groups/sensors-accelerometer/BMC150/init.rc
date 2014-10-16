@@ -2,7 +2,7 @@ on post-fs
     insmod /system/lib/modules/bmc150-accel.ko
     setprop ro.iio.accel.name "BMC150 Accelerometer"
     setprop ro.iio.accel.vendor "Bosch Sensortec"
-    setprop ro.iio.accel.max_range 16
+    setprop ro.iio.accel.max_range 39.24
     setprop ro.iio.accel.resolution 0.01
     setprop ro.iio.accel.power 2
 
