@@ -4,5 +4,5 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PACKAGES += wpa_supplicant \
     brcmfmac43241b4-sdio.bin \
-    brcmfmac43241b4-sdio.txt
-
+    brcmfmac43241b4-sdio.txt \
+    brcmfmac43241b4-oob-sdio.txt
