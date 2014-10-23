@@ -4,4 +4,4 @@
 service hdcpd /system/bin/hdcpd
     class main
     user root
-    group graphics drmrpc
+
