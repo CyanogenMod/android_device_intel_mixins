@@ -5,6 +5,7 @@ service ufo-init /system/bin/sh /system/etc/init.ufo.sh
 
 service coreu /system/bin/coreu
     class main
+    seclabel u:r:coreu:s0
 
 on post-fs-data
     mkdir /data/system 0770 system system
