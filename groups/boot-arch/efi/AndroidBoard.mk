@@ -92,6 +92,8 @@ INSTALLED_RADIOIMAGE_TARGET += $(bootloader_zip) $(bootloader_metadata)
 bootloader_bin := $(PRODUCT_OUT)/bootloader
 $(bootloader_bin): \
 		$(bootloader_zip) \
+		$(MKDOSFS) \
+		$(MCOPY) \
 		$(BOOTLOADER_ADDITIONAL_DEPS) \
 		device/intel/build/bootloader_from_zip \
 
@@ -110,6 +112,8 @@ $(call dist-for-goals,droidcore,$(bootloader_bin):$(TARGET_PRODUCT)-bootloader-$
 fastboot_usb_bin := $(PRODUCT_OUT)/fastboot-usb.img
 $(fastboot_usb_bin): \
 		$(bootloader_zip) \
+		$(MKDOSFS) \
+		$(MCOPY) \
 		$(BOOTLOADER_ADDITIONAL_DEPS) \
 		device/intel/build/bootloader_from_zip \
 
