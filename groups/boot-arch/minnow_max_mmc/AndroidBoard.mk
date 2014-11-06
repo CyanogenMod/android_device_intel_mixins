@@ -1,0 +1,1 @@
+../efi/AndroidBoard.mk

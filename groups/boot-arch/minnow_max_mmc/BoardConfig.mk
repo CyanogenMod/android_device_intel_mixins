@@ -1,0 +1,1 @@
+../efi/BoardConfig.mk
