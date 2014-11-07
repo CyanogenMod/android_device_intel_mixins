@@ -283,9 +283,21 @@ def split_params(selections):
             res.append((group, option_params, {}))
     return res
 
+def check_section(section, cp, specfile):
+    if not cp.has_section(section):
+        policy_error('specfile missing {} section: {}'.format(section, specfile))
+        return False
+    return True
 
 def process_spec_file(specfile, dry_run):
     cp = read_spec_file(specfile)
+
+    if False in (
+            check_section("main", cp, specfile),
+            check_section("groups", cp, specfile)
+            ):
+        return
+
     basedir = cp.get("main", "mixinsdir")
     selections = split_params(cp.items("groups"))
     mixin_tree = read_mixin_tree(basedir)
