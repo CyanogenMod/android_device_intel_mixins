@@ -1,1 +1,1 @@
-/dev/block/pci/pci0000:00/0000:00:12.0/by-name/android_persistent   0660 system system
+/dev/block/platform/80860F16:00/by-name/android_persistent   0660 system system
