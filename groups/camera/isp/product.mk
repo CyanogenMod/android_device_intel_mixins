@@ -16,7 +16,7 @@ PRODUCT_COPY_FILES += $(LOCAL_PATH)/init.atomisp.sh:system/etc/init.atomisp.sh
 # 3A/AIQ
 PRODUCT_PACKAGES += \
     libmfldadvci \
-    dummy.cpf \
+    dummy.aiqb \
     CGamma_DIS5MP.bin \
     noise.fpn \
     YGamma_DIS5MP.bin \
