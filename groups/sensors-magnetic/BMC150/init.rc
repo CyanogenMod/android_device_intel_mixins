@@ -7,3 +7,4 @@ on post-fs
     setprop ro.iio.magn.power 2
     setprop ro.iio.magn.quirks "noisy"
     setprop ro.iio.magn.cal_steps 2
+    setprop ro.iio.magn.min_freq 15
