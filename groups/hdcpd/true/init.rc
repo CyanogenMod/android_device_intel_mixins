@@ -1,7 +1,12 @@
 # Note that this service must start as root to set up a mem-mapped region
 # and once that is set up it will drop all unnecessary capabilities and
 # will not show up as a root process in the steady state.
+on post-fs-data
+    mkdir /data/hdcp 700 media media
+
 service hdcpd /system/bin/hdcpd
     class main
     user root
+    group graphics drmrpc
+    seclabel u:r:hdcpd:s0
 
