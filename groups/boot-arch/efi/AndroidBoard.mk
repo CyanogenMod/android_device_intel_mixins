@@ -152,4 +152,7 @@ else
 INSTALLED_RADIOIMAGE_TARGET += $(PRODUCT_OUT)/fastboot.img
 endif
 
+ifneq ($(EFI_IFWI_BIN),)
+$(call dist-for-goals,droidcore,$(EFI_IFWI_BIN):$(TARGET_PRODUCT)-ifwi-$(FILE_NAME_TAG).bin)
+endif
 
