@@ -3,6 +3,6 @@ service dhcpcd_eth0 /system/bin/dhcpcd -ABDKL eth0
     disabled
     oneshot
 
-on post-fs
+on post-fs-data
     start dhcpcd_eth0
 
