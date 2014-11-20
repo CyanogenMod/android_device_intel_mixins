@@ -20,10 +20,6 @@ BOARD_SFU_UPDATE := hardware/intel/efi_capsules/$(BIOS_VARIANT)/$(TARGET_PRODUCT
 EFI_IFWI_BIN := hardware/intel/efi_capsules/$(BIOS_VARIANT)/$(TARGET_PRODUCT)_ifwi.bin
 EFI_EMMC_BIN := hardware/intel/efi_capsules/$(BIOS_VARIANT)/$(TARGET_PRODUCT)_emmc.bin
 
-ifneq ($(BOARD_SFU_UPDATE),)
-PRODUCT_COPY_FILES += $(BOARD_SFU_UPDATE):system/etc/firmware/BIOSUPDATE.fv
-endif
-
 ifneq ($(CALLED_FROM_SETUP),true)
 ifeq ($(wildcard $(BOARD_SFU_UPDATE)),)
 $(warning $(BOARD_SFU_UPDATE) not found, OTA updates will not provide a firmware capsule)
@@ -37,5 +33,9 @@ ifeq ($(wildcard $(EFI_IFWI_BIN)),)
 $(warning $(EFI_IFWI_BIN) not found, IFWI binary will not be provided in out/dist/)
 EFI_IFWI_BIN :=
 endif
+endif
+
+ifneq ($(BOARD_SFU_UPDATE),)
+PRODUCT_COPY_FILES += $(BOARD_SFU_UPDATE):system/etc/firmware/BIOSUPDATE.fv
 endif
 
