@@ -1,0 +1,18 @@
+#persist color settings
+on boot
+    chown graphics graphics /sys/class/drm/card0/gamma_adjust
+    chown graphics graphics /sys/class/drm/card0/gamma_enable
+    chown graphics graphics /sys/class/drm/card0/csc_adjust
+    chown graphics graphics /sys/class/drm/card0/csc_enable
+    export IGFX_DISP_SETTINGS_DIR /system/etc/igfxDispSettings
+    export IGFX_DISP_SETTINGS_OEM_DIR /oem/igfxDispSettings
+
+service colorConfig_app /system/bin/igfxSettings
+    user graphics
+    group system
+    disabled
+    oneshot
+
+on property:init.svc.bootanim=stopped
+    start colorConfig_app
+

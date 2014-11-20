@@ -1,0 +1,3 @@
+DISP_SETTINGS_DIR := system/etc/igfxDispSettings
+$(foreach i,$(wildcard $(LOCAL_PATH)/display-settings/*.iagp), \
+  $(eval PRODUCT_COPY_FILES += $i:$(DISP_SETTINGS_DIR)/$(notdir $i)))
