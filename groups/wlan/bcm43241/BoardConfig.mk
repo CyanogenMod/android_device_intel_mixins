@@ -10,3 +10,4 @@ WIFI_DRIVER_FW_PATH_PARAM := "/sys/module/bcmdhd/parameters/firmware_path"
 WIFI_DRIVER_FW_PATH_STA := "/vendor/firmware/brcm/brcmfmac43241b4-sdio.bin"
 WIFI_DRIVER_FW_PATH_AP := "/vendor/firmware/brcm/brcmfmac43241b4-sdio_apsta.bin"
 WIFI_DRIVER_FW_PATH_P2P := "/vendor/firmware/brcm/brcmfmac43241b4-sdio.bin"
+DEVICE_PACKAGE_OVERLAYS += device/intel/common/wlan/overlay-pno
