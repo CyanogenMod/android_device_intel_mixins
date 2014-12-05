@@ -1,1 +1,1 @@
-../kernel-gmin.mk
+../product.mk
