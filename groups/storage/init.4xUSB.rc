@@ -32,6 +32,12 @@ on init
 on fs
     setprop ro.crypto.fuse_sdcard true
 
+on post-fs-data
+    # For sdcard to get right context on /data/media/0
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/media/0 0770 media_rw media_rw
+    restorecon /data/media/0
+
 # virtual sdcard daemon running as media_rw (1023)
 service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
     class late_start
