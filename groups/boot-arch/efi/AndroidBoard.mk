@@ -94,6 +94,7 @@ $(bootloader_bin): \
 		$(bootloader_zip) \
 		$(MKDOSFS) \
 		$(MCOPY) \
+		$(IMG2SIMG) \
 		$(BOOTLOADER_ADDITIONAL_DEPS) \
 		device/intel/build/bootloader_from_zip \
 
