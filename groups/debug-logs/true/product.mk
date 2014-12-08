@@ -3,5 +3,6 @@ ifneq ($(TARGET_BUILD_VARIANT),user)
 PRODUCT_COPY_FILES += device/intel/common/debug/init.logs.rc:root/init.logs.rc
 PRODUCT_PACKAGES += \
     logcatext \
-    start_log_srv.sh
+    start_log_srv.sh \
+    logcat_ep.sh
 endif
