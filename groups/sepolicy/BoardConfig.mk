@@ -10,6 +10,7 @@ BOARD_SEPOLICY_UNION := \
     coreu.te \
     device.te \
     drmserver.te \
+    efiprop.te \
     file_contexts \
     file.te \
     genfs_contexts \
