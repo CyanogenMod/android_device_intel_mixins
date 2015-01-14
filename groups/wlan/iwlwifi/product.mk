@@ -14,5 +14,9 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
         device/intel/common/wlan/iwlwifi/load_iwlwifi.sh:system/bin/load_iwlwifi.sh
 
+
 $(call inherit-product-if-exists, vendor/intel/fw/iwl/iwl-fw-{{{chip_id}}}.mk)
 
+# Add Manufacturing tool
+PRODUCT_PACKAGES += \
+    wlan_intel_restore.sh
