@@ -18,7 +18,8 @@ else
 endif
 
 ifneq ($(LOCAL_KERNEL_MODULE_TREE_PATH),)
-  LOCAL_KERNEL_VERSION := $(shell file -k $(LOCAL_KERNEL) | sed -nr 's|.*version ([^ ]+) .*|\1|p')
+  LOCAL_KERNEL_VERSION := $(shell strings $(LOCAL_KERNEL_PATH)/vmlinux | grep -m 1 'Linux version' | awk '{print $$3}')
+
   ifeq ($(LOCAL_KERNEL_VERSION),)
     $(error Cannot get version for kernel '$(LOCAL_KERNEL)')
   endif
