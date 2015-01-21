@@ -2,8 +2,6 @@ on post-fs-data
     chmod 0660 /data/misc/wifi/p2p_supplicant.conf
     # create config WiFi NVM folder
     mkdir /config/wlan 0770 wifi system
-
-on boot
     start wlan_rest_nvm
     wait /config/wlan/iwl_nvm.bin
     start load_iwlwifi
