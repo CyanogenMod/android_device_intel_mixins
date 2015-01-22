@@ -5,7 +5,7 @@ on post-fs
     setprop ro.iio.accel.max_range 39.24
     setprop ro.iio.accel.resolution 0.01
     setprop ro.iio.accel.power 2
-    setprop ro.iio.accel.max_freq $[max_freq]
+    setprop ro.iio.accel.max_freq {{{max_freq}}}
     setprop ro.iio.temp.bmc150_accel.name "BMC150 Temperature Sensor"
     setprop ro.iio.temp.bmc150_accel.vendor "Bosch Sensortec"
 

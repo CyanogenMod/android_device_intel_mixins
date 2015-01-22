@@ -1,4 +1,4 @@
-TARGET_UEFI_ARCH := $[uefi_arch]
+TARGET_UEFI_ARCH := {{{uefi_arch}}}
 ifeq ($(TARGET_BUILD_VARIANT),user)
     BIOS_VARIANT := release
 else

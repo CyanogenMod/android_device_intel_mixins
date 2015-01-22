@@ -9,6 +9,9 @@ import re
 import argparse
 import collections
 import string
+sys.path.append('external/pystache')
+import pystache
+pystache.defaults.MISSING_TAGS='strict'
 
 # We're assuming '#' is valid to start a comment in all the configs we are amending
 # which so far is true.
@@ -30,35 +33,15 @@ _GROUP_SPEC_FN = "mixinfo.spec"
 abort_on_errors = True
 policy_errors_found = False
 
-class ParameterFormatter(string.Formatter):
-    RE = re.compile(r"""
-        (.*?(?=\$\[\w+\]) # optional text followed by a field
-        |.+?(?=\Z))       # or text followed by an end-of-string
-        (?:               # Possible field_name
-            \$\[
-            (\w+)
-            \]
-        )?""", re.VERBOSE | re.DOTALL)
-
-    def __init__(self):
-        self.kwargs = set()
-        self.used_args = set()
-
-    def parse(self, format_string):
-        for literal_text, field_name in self.RE.findall(format_string):
-            if field_name == '':
-                yield (literal_text, None, None, None)
-            else:
-                yield (literal_text, field_name, '', None)
-
-    def check_unused_args(self, used_args, args, kwargs):
-        self.used_args |= used_args
-        self.kwargs |= set(kwargs.keys())
-
-    def error_on_unused_args(self, option):
-        unused = list(self.kwargs - self.used_args)
-        if unused:
-            policy_error("Unnecessary parameter {} given for mixin option '{}'".format(unused, option))
+class ReadTrackingDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(ReadTrackingDict, self).__init__(*args, **kwargs)
+        self.reads = collections.defaultdict(int)
+    def __getitem__(self, key):
+        self.reads[key] += 1
+        return super(ReadTrackingDict, self).__getitem__(key)
+    def unused_keys(self):
+        return list(set(self.keys()) - set(self.reads.keys()))
 
 
 def warning(s):
@@ -175,7 +158,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
             if verbose:
                 policy_error("group {} doesn't have a default option!".format(group))
         else:
-            returned_selections.append((group, "default", {}))
+            returned_selections.append((group, "default", ReadTrackingDict()))
 
     if verbose:
         warning("default groups used: " + " ".join(default_groups))
@@ -239,15 +222,15 @@ warn_vars = [
         "PRODUCT_PROPERTY_OVERRIDES",
         ]
 
-def amend_file(dlines, src, mixinsbase, params, formatter):
+def amend_file(dlines, src, mixinsbase, params):
     """Augment the destination lines list with data from the source file provided.
     Assumes we have run clear_file() on dlines at some point beforehand"""
     with open(src) as sfile:
-        slines = sfile.readlines()
+        src_contents = sfile.read()
         try:
-            slines = [formatter.vformat(i, (), params) for i in slines]
-        except KeyError as e:
-            policy_error("{} depends on undefined mixin parameter '{}'".format(src, e.message))
+            slines = pystache.render(src_contents, params).splitlines(True)
+        except pystache.context.KeyNotFoundError as e:
+            policy_error("{} depends on undefined mixin parameter '{}'".format(src, e.key))
 
     # sanity checks
     for line in slines:
@@ -270,6 +253,10 @@ def amend_file(dlines, src, mixinsbase, params, formatter):
 
     return output
 
+def coerce_boolean(d):
+    for k in d:
+        if type(d[k]) == str and d[k].lower() == 'false':
+            d[k] = False
 
 def split_params(selections):
     res = []
@@ -278,9 +265,10 @@ def split_params(selections):
         if m is not None:
             option = m.group(1)
             params = dict(map(str.strip, x.split('=', 1)) for x in m.group(2).split(','))
-            res.append((group, option, params))
+            coerce_boolean(params)
+            res.append((group, option, ReadTrackingDict(params)))
         else:
-            res.append((group, option_params, {}))
+            res.append((group, option_params, ReadTrackingDict()))
     return res
 
 def check_section(section, cp, specfile):
@@ -303,7 +291,6 @@ def process_spec_file(specfile, dry_run):
     mixin_tree = read_mixin_tree(basedir)
     product_dir = os.path.dirname(specfile)
     file_map = {}
-    formatters = collections.defaultdict(ParameterFormatter)
     retval = True
 
     # Set up the file map since the config files in the product directory
@@ -343,7 +330,7 @@ def process_spec_file(specfile, dry_run):
 
             for frag in frags:
                 if os.path.exists(frag):
-                    dest_lines = amend_file(dest_lines, frag, basedir, params, formatters[group])
+                    dest_lines = amend_file(dest_lines, frag, basedir, params)
 
         if dry_run:
             if cmp(dest_lines, orig_dest_lines) != 0:
@@ -353,8 +340,11 @@ def process_spec_file(specfile, dry_run):
             with open(dest_fn, "w") as fp:
                 fp.writelines(dest_lines)
 
-    for group, option, _ in selections:
-        formatters[group].error_on_unused_args(group + ": " + option)
+    for group, option, params in selections:
+        unused = params.unused_keys()
+        if unused:
+            policy_error('Unnecessary parameters {} given for mixin option'\
+                         ' "{}: {}"'.format(unused, group, option))
 
     return retval
 
@@ -411,4 +401,3 @@ if __name__ == "__main__":
 
     ret = main(args.dry_run, args.spec, args.warn_only)
     sys.exit(ret)
-

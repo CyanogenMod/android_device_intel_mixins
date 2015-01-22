@@ -8,6 +8,6 @@ on post-fs
     setprop ro.iio.anglvel.power 18
     setprop ro.iio.anglvel.scale 0.000532
     setprop ro.iio.anglvel.quirks "continuous,noisy"
-    setprop ro.iio.anglvel.max_freq $[max_freq]
+    setprop ro.iio.anglvel.max_freq {{{max_freq}}}
     setprop ro.iio.temp.bmg160.name "BMG160 Temperature Sensor"
     setprop ro.iio.temp.bmg160.vendor "Bosch Sensortec"

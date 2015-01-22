@@ -1,5 +1,5 @@
 ENABLE_ITUXD := true
-ifeq ($[modem_zone], true)
+ifeq ({{{modem_zone}}}, true)
 ITUX_MODEM_ZONE := true
 endif
 PRODUCT_PACKAGES += ituxd

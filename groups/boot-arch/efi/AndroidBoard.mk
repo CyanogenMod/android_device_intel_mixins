@@ -138,7 +138,7 @@ endif
 
 $(call dist-for-goals,droidcore,$(LOADER_PREBUILT)/efitools/$(LOADER_TYPE)/LockDown.efi:LockDown.efi)
 
-ifeq ($[fastboot],efi)
+ifeq ({{{fastboot}}},efi)
 # For fastboot-uefi we need to parse gpt.ini into
 # a binary format.
 

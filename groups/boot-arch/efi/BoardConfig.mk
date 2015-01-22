@@ -55,7 +55,7 @@ TARGET_BOOTLOADER_BOARD_NAME := $(TARGET_DEVICE)
 DEVICE_PACKAGE_OVERLAYS += device/intel/common/boot/overlay
 ADDITIONAL_DEFAULT_PROPERTIES += ro.frp.pst=/dev/block/by-name/android_persistent
 
-ifeq ($[fastboot],efi)
+ifeq ({{{fastboot}}},efi)
 # For fastboot-uefi we need to parse gpt.ini into
 # a binary format.
 
