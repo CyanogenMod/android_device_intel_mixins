@@ -297,9 +297,9 @@ def process_spec_file(specfile, dry_run):
     # may have slightly different names than what is in _FILE_LIST
     for fname in _FILE_LIST:
         if cp.has_option("mapping", fname):
-            file_map[fname] = cp.get("mapping", fname)
+            file_map[fname] = cp.get("mapping", fname).split()
         else:
-            file_map[fname] = fname
+            file_map[fname] = [fname]
 
     if not dry_run:
         warning("processing {}".format(specfile))
@@ -308,37 +308,38 @@ def process_spec_file(specfile, dry_run):
     # and the selections should be sane
     selections = validate_selections(selections, mixin_tree, not dry_run)
 
-    for src, dest in file_map.iteritems():
-        dest_fn = os.path.join(product_dir, dest)
+    for src, dests in file_map.iteritems():
+        for dest in dests:
+            dest_fn = os.path.join(product_dir, dest)
 
-        orig_dest_lines, dest_lines = clear_file(dest_fn)
+            orig_dest_lines, dest_lines = clear_file(dest_fn)
 
-        # Now check all the groups to see if they have a configuration
-        # fragment to insert into the destination file
-        for group, option, params in selections:
-            optdir = mixin_tree[group]["options"][option]
-            src_fn = os.path.join(optdir, src)
+            # Now check all the groups to see if they have a configuration
+            # fragment to insert into the destination file
+            for group, option, params in selections:
+                optdir = mixin_tree[group]["options"][option]
+                src_fn = os.path.join(optdir, src)
 
-            # Any given file can have multiple fragments. We first
-            # look for <frag>.1, <frag>.2, ... <frag>.9, <frag>
-            # This is useful for when several mixin options have mostly
-            # the same data except for maybe a few lines; you can
-            # avoid copypasting a lot of stuff by using this feature
-            # and symbolic links for the common bits.
-            frags = [src_fn + "." + str(i) for i in range(10)]
-            frags.append(src_fn)
+                # Any given file can have multiple fragments. We first
+                # look for <frag>.1, <frag>.2, ... <frag>.9, <frag>
+                # This is useful for when several mixin options have mostly
+                # the same data except for maybe a few lines; you can
+                # avoid copypasting a lot of stuff by using this feature
+                # and symbolic links for the common bits.
+                frags = [src_fn + "." + str(i) for i in range(10)]
+                frags.append(src_fn)
 
-            for frag in frags:
-                if os.path.exists(frag):
-                    dest_lines = amend_file(dest_lines, frag, basedir, params)
+                for frag in frags:
+                    if os.path.exists(frag):
+                        dest_lines = amend_file(dest_lines, frag, basedir, params)
 
-        if dry_run:
-            if cmp(dest_lines, orig_dest_lines) != 0:
-                warning("{} is out of date".format(dest_fn))
-                retval = False
-        else:
-            with open(dest_fn, "w") as fp:
-                fp.writelines(dest_lines)
+            if dry_run:
+                if cmp(dest_lines, orig_dest_lines) != 0:
+                    warning("{} is out of date".format(dest_fn))
+                    retval = False
+            else:
+                with open(dest_fn, "w") as fp:
+                    fp.writelines(dest_lines)
 
     for group, option, params in selections:
         unused = params.unused_keys()
