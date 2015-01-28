@@ -31,7 +31,6 @@ BOARD_SEPOLICY_UNION := \
     recovery.te \
     service_contexts \
     service.te \
-    setup_fs.te \
     shell.te \
     surfaceflinger.te \
     system_app.te \
