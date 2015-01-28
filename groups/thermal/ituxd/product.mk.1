@@ -1,7 +1,7 @@
 ENABLE_ITUXD := true
-ifeq ({{{modem_zone}}}, true)
+{{#modem_zone}}
 ITUX_MODEM_ZONE := true
-endif
+{{/modem_zone}}
 PRODUCT_PACKAGES += ituxd
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/config/thermal_sensor_config.xml:/system/etc/thermal_sensor_config.xml \
