@@ -34,6 +34,7 @@ BOARD_SEPOLICY_UNION := \
     surfaceflinger.te \
     system_app.te \
     system_server.te \
+    te_macros \
     thermal.te \
     ueventd.te \
     untrusted_app.te \
