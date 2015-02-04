@@ -3,7 +3,6 @@ on post-fs-data
     mkdir /data/gps 0770 gps system
 
 on boot
-    # Enable Power control for GPS chip using RFKILL driver
     chmod 0660 /sys/class/tty/{{{tty}}}/../../power/control
     chown system system /sys/class/tty/{{{tty}}}/../../power/control
     mkdir /dev/gps 0770 gps system
@@ -11,12 +10,12 @@ on boot
     symlink /sys/class/tty/{{{tty}}}/../../power/control /dev/gps/ttyGPSPowerControl
 
 service gpsd /system/bin/gpsd -c /system/etc/gps.xml
-    class main
+    class late_start
     user gps
     group system inet radio sdcard_rw net_admin
 
 service gpscerd /system/bin/gpscerd /data/gps/gps.cer
-    class main
+    class late_start
     user system
     group system
     oneshot
