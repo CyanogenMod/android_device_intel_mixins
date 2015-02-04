@@ -14,5 +14,5 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
         device/intel/common/wlan/iwlwifi/load_iwlwifi.sh:system/bin/load_iwlwifi.sh
 
-$(call inherit-product-if-exists, vendor/intel/fw/iwl/iwl-fw-8000-cht-gmin.mk)
+$(call inherit-product-if-exists, vendor/intel/fw/iwl/iwl-fw-{{{chip_id}}}.mk)
 
