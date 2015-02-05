@@ -10,3 +10,7 @@ PRODUCT_PACKAGES += \
     libmfldadvci \
     dummy.aiqb \
 
+# Only include test apps in eng builds.
+PRODUCT_PACKAGES_ENG += \
+    TestingCamera \
+    TestingCamera2
