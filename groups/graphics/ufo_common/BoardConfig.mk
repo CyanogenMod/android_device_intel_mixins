@@ -1,6 +1,7 @@
 BOARD_KERNEL_CMDLINE += vga=current i915.modeset=1 drm.vblankoffdelay=1 i915.fastboot=1
 USE_OPENGL_RENDERER := true
 USE_INTEL_UFO_DRIVER := true
+USE_INTEL_UFO_OPENCL := {{{use_opencl}}}
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 INTEL_VA := true
 BOARD_GRAPHIC_IS_GEN := true
