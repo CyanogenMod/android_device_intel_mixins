@@ -34,7 +34,3 @@ EFI_IFWI_BIN :=
 endif
 endif
 
-ifneq ($(BOARD_SFU_UPDATE),)
-PRODUCT_COPY_FILES += $(BOARD_SFU_UPDATE):system/etc/firmware/BIOSUPDATE.fv
-endif
-

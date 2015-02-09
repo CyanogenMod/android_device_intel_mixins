@@ -53,7 +53,7 @@ endif
 # all bootloader pieces with a single "fastboot flash bootloader"
 # command. We place the fastboot.img in the ESP for the same reason.
 # Since it gets deleted we can't do incremental updates of it, we
-# keep a copy in the system partition for this purpose.
+# keep a copy as capsules/current.fv for this purpose.
 intermediates := $(call intermediates-dir-for,PACKAGING,bootloader_zip)
 bootloader_zip := $(intermediates)/bootloader.zip
 $(bootloader_zip): intermediates := $(intermediates)
@@ -67,13 +67,14 @@ $(bootloader_zip): \
 
 	$(hide) rm -rf $(efi_root)
 	$(hide) rm -f $@
-	$(hide) mkdir -p $(efi_root)
+	$(hide) mkdir -p $(efi_root)/capsules
 	$(hide) mkdir -p $(efi_root)/EFI/BOOT
 ifneq ($(BOARD_EXTRA_EFI_MODULES),)
 	$(hide) $(ACP) $(BOARD_EXTRA_EFI_MODULES) $(efi_root)/
 endif
 ifneq ($(BOARD_SFU_UPDATE),)
 	$(hide) $(ACP) $(BOARD_SFU_UPDATE) $(efi_root)/BIOSUPDATE.fv
+	$(hide) $(ACP) $(BOARD_SFU_UPDATE) $(efi_root)/capsules/current.fv
 endif
 	$(hide) $(ACP) $(BOARD_FIRST_STAGE_LOADER) $(efi_root)/loader.efi
 	$(hide) $(ACP) $(BOARD_FIRST_STAGE_LOADER) $(efi_root)/EFI/BOOT/$(efi_default_name)
