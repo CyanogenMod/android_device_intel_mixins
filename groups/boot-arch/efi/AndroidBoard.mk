@@ -154,6 +154,12 @@ else
 INSTALLED_RADIOIMAGE_TARGET += $(PRODUCT_OUT)/fastboot.img
 endif
 
+{{#acpi_permissive}}
+# Kernelflinger won't check the ACPI table oem_id, oem_table_id and
+# revision fields
+KERNELFLINGER_ALLOW_UNSUPPORTED_ACPI_TABLE := true
+{{/acpi_permissive}}
+
 ifneq ($(EFI_IFWI_BIN),)
 $(call dist-for-goals,droidcore,$(EFI_IFWI_BIN):$(TARGET_PRODUCT)-ifwi-$(FILE_NAME_TAG).bin)
 endif
