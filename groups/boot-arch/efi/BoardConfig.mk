@@ -81,3 +81,7 @@ ifneq ($(EFI_EMMC_BIN),)
 BOARD_FLASHFILES += $(EFI_EMMC_BIN):emmc.bin
 endif
 
+ifneq ($(EFI_IFWI_BIN),)
+BOARD_FLASHFILES += $(EFI_IFWI_BIN):ifwi.bin
+endif
+
