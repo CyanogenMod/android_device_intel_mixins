@@ -160,6 +160,11 @@ endif
 # revision fields
 KERNELFLINGER_ALLOW_UNSUPPORTED_ACPI_TABLE := true
 {{/acpi_permissive}}
+{{#use_power_button}}
+# Allow Kernelflinger to use the power key as an input source.
+# Doesn't work on most boards.
+KERNELFLINGER_USE_POWER_BUTTON := true
+{{/use_power_button}}
 
 ifneq ($(EFI_IFWI_BIN),)
 $(call dist-for-goals,droidcore,$(EFI_IFWI_BIN):$(TARGET_PRODUCT)-ifwi-$(FILE_NAME_TAG).bin)
