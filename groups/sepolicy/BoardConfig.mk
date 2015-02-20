@@ -8,6 +8,7 @@ BOARD_SEPOLICY_UNION := \
     adbd.te \
     bluetooth.te \
     coreu.te \
+    cws_manu.te \
     device.te \
     drmserver.te \
     efiprop.te \
