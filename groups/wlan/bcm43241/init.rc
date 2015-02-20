@@ -1,3 +1,10 @@
+service wlan_prov /system/bin/wlan_prov
+    class main
+    user root
+    group system wifi
+    disabled
+    oneshot
+
 service wpa_supplicant /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
     -I/system/etc/wifi/wpa_supplicant_overlay.conf \
@@ -47,6 +54,8 @@ service iprenew_p2p /system/bin/dhcpcd -n
     disabled
     oneshot
 
-on boot
+on post-fs-data
+    start wlan_prov
+    wait /config/wifi/mac.txt
     insmod /system/lib/modules/cfg80211.ko
     insmod /system/lib/modules/bcmdhd.ko firmware_path=/system/vendor/firmware/brcm/brcmfmac43241b4-sdio.bin nvram_path=/system/vendor/firmware/brcm/brcmfmac43241b4-oob-sdio.txt
