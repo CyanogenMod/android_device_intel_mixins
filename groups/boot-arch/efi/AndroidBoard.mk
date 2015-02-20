@@ -138,7 +138,8 @@ ifneq ($(BOARD_SFU_UPDATE),)
 $(call dist-for-goals,droidcore,$(BOARD_SFU_UPDATE):$(TARGET_PRODUCT)-sfu-$(FILE_NAME_TAG).fv)
 endif
 
-$(call dist-for-goals,droidcore,$(LOADER_PREBUILT)/efitools/$(LOADER_TYPE)/LockDown.efi:LockDown.efi)
+$(call dist-for-goals,droidcore,device/intel/build/testkeys/testkeys_lockdown.txt:test-keys_efi_lockdown.txt)
+$(call dist-for-goals,droidcore,device/intel/build/testkeys/unlock.txt:efi_unlock.txt)
 
 ifeq ({{{fastboot}}},efi)
 # For fastboot-uefi we need to parse gpt.ini into
