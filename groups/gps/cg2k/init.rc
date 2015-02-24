@@ -3,11 +3,28 @@ on post-fs-data
     mkdir /data/gps 0770 gps system
 
 on boot
+    # GPS GPT factory partition data retrieval
+    mkdir /config/gnss 0770 gps system
+    start gnss_rest_wpc
+    start gnss_rest_mec
+
     chmod 0660 /sys/class/tty/{{{trans}}}/../../power/control
     chown gps gps /sys/class/tty/{{{trans}}}/../../power/control
     mkdir /dev/gps 0770 gps gps
     symlink /dev/{{{trans}}} /dev/gps/ttyGPS
     symlink /sys/class/tty/{{{trans}}}/../../power/control /dev/gps/ttyGPSPowerControl
+
+service gnss_rest_wpc /system/bin/cws_manu -G -n0 -r/config/gnss/GNSS_WPC.bin
+    user gps
+    group system
+    oneshot
+    disabled
+
+service gnss_rest_mec /system/bin/cws_manu -G -n1 -r/config/gnss/GNSS_MEC.bin
+    user gps
+    group system
+    oneshot
+    disabled
 
 service gnssCG2000 /system/bin/gnssCG2000
     class late_start
