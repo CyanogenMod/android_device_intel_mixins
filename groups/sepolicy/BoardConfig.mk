@@ -7,6 +7,7 @@ BOARD_SEPOLICY_REPLACE := \
 BOARD_SEPOLICY_UNION := \
     adbd.te \
     bluetooth.te \
+    cg2k.te \
     coreu.te \
     cws_manu.te \
     device.te \
