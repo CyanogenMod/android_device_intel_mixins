@@ -8,6 +8,9 @@ USE_CAMERA_HAL_3 := true
 # different ISPs
 BOARD_CAMERA_IPU2_SUPPORT = true
 
+# Face Engine can be either PVL or IA.
+BOARD_CAMERA_FACE_ENGINE = {{{face_engine}}}
+
 # camera3hal won't build if this isn't true
 USE_SHARED_IA_FACE = true
 
