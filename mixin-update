@@ -29,6 +29,7 @@ _FILE_LIST = ["BoardConfig.mk", "init.rc", "init.recovery.rc", "fstab", "product
 
 _PRODUCT_SPEC_FN = "mixins.spec"
 _GROUP_SPEC_FN = "mixinfo.spec"
+_OPTION_SPEC_FN = "option.spec"
 
 abort_on_errors = True
 policy_errors_found = False
@@ -88,7 +89,7 @@ def read_mixin_tree(basedir, mixin_tree=None):
         groupdir = os.path.join(basedir, group)
         mixin_tree[group]["groupdir"] = groupdir
         mixin_tree[group]["options"] = {}
-        mixin_tree[group]["deps"] = []
+        mixin_tree[group]["deps"] = set()
 
         # Check for a mixinfo file in the root of the group directory
         # This is for metadata about the group as a whole. Its presence
@@ -101,13 +102,31 @@ def read_mixin_tree(basedir, mixin_tree=None):
             # prior to inheriting this mixin, typically because we need the
             # other groups to define certain variables for us
             if cp.has_option("mixinfo", "deps"):
-                mixin_tree[group]["deps"] = cp.get("mixinfo", "deps").split()
+                mixin_tree[group]["deps"] = set(cp.get("mixinfo", "deps").split())
 
         options = [i for i in os.listdir(groupdir) if not i.startswith(".")]
         for option in options:
-            optiondir = os.path.join(groupdir, option)
             assert option not in mixin_tree[group]["options"]
-            mixin_tree[group]["options"][option] = optiondir
+
+            mixin_tree[group]["options"][option] = {}
+            cur_opt = mixin_tree[group]["options"][option]
+
+            cur_opt["optiondir"] = os.path.join(groupdir, option)
+            cur_opt["deps"] = set()
+            cur_opt["defaults"] = {}
+
+            optioninfo = os.path.join(cur_opt["optiondir"], _OPTION_SPEC_FN)
+            if os.path.exists(optioninfo):
+                cp = read_spec_file(optioninfo)
+
+                # Options may define their own dependencies just like at the
+                # group-level
+                if cp.has_option("mixinfo", "deps"):
+                    cur_opt["deps"] = set(cp.get("mixinfo", "deps").split())
+
+                if cp.has_section("defaults"):
+                    for k,v in cp.items("defaults"):
+                        cur_opt["defaults"][k] = v
 
     return mixin_tree
 
@@ -142,11 +161,15 @@ def validate_selections(selections, mixin_tree, verbose=False):
             policy_error("unknown option {} for group {}".format(option, group))
             continue
 
-        deps = mixin_tree[group]["deps"]
+        deps = mixin_tree[group]["deps"] | mixin_tree[group]["options"][option]["deps"]
         for dep in deps:
             if dep not in groups_seen:
-                policy_error("group {} requires that group {} be selected first".format(group, dep))
+                policy_error("group {} option {} requires that group {} be selected first".format(group, option, dep))
 
+        defaults = mixin_tree[group]["options"][option]["defaults"]
+        for k, v in defaults.iteritems():
+            if k not in params:
+                params[k] = v
         returned_selections.append((group, option, params))
 
     # The spec file may have omitted some groups. If so, pull in their
@@ -158,7 +181,8 @@ def validate_selections(selections, mixin_tree, verbose=False):
             if verbose:
                 policy_error("group {} doesn't have a default option!".format(group))
         else:
-            returned_selections.append((group, "default", ReadTrackingDict()))
+            returned_selections.append((group, "default",
+                    ReadTrackingDict(mixin_tree[group]["options"]["default"]["defaults"])))
 
     if verbose:
         warning("default groups used: " + " ".join(default_groups))
@@ -317,7 +341,9 @@ def process_spec_file(specfile, dry_run):
             # Now check all the groups to see if they have a configuration
             # fragment to insert into the destination file
             for group, option, params in selections:
-                optdir = mixin_tree[group]["options"][option]
+                cur_opt = mixin_tree[group]["options"][option]
+
+                optdir = cur_opt["optiondir"]
                 src_fn = os.path.join(optdir, src)
 
                 # Any given file can have multiple fragments. We first
