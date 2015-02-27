@@ -2,8 +2,8 @@
 LOCAL_KERNEL_MODULE_FILES :=
 ifeq ($(TARGET_PREBUILT_KERNEL),)
   # use default kernel
-  LOCAL_KERNEL_PATH := device/intel/{{{path}}}-kernel/$(TARGET_KERNEL_ARCH)
-  LOCAL_KERNEL := $(LOCAL_KERNEL_PATH)/bzImage
+  LOCAL_KERNEL_PATH := device/intel/{{{path}}}-kernel{{#dev-kernel}}-dev{{/dev-kernel}}/$(TARGET_KERNEL_ARCH)
+  LOCAL_KERNEL := $(LOCAL_KERNEL_PATH)/{{{binary_name}}}
   LOCAL_KERNEL_MODULE_FILES := $(wildcard $(LOCAL_KERNEL_PATH)/modules/*)
   LOCAL_KERNEL_MODULE_TREE_PATH := $(LOCAL_KERNEL_PATH)/lib/modules
 else
