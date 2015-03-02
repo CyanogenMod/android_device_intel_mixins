@@ -1,6 +1,6 @@
 PRODUCT_PACKAGES += \
     hostapd \
-    hostap_cli \
+    hostapd_cli \
     wpa_supplicant \
     wpa_cli
 
