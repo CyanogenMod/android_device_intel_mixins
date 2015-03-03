@@ -20,8 +20,13 @@ USE_INTEL_CAMERA_EXTRAS := true
 # Selects which subdirectory to pick in libmfldadvci/ia_imaging/ia_panorama/
 IA_PANORAMA_VERSION := 1.0
 
-# No hardware JPEG encode
 USE_INTEL_JPEG := false
+ifeq ($(UFO_ENABLE_GEN), gen8)
+ifeq ($(USE_MEDIASDK), true)
+# GEN8 has hardware JPEG encoder via Media SDK.
+USE_INTEL_JPEG := true
+endif
+endif
 
 # Must be "false" (NOT simply unset!) or else lots of camera
 # depencencies will remove themselves from the build...
