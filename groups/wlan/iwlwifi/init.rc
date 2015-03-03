@@ -8,6 +8,8 @@ on boot
     wait /config/wlan/iwl_nvm.bin
     start load_iwlwifi
 
+setprop wifi.interface wlan0
+
 service wpa_supplicant /system/bin/wpa_supplicant -Dnl80211 -iwlan0 -g@android:wpa_wlan0 -c/data/misc/wifi/wpa_supplicant.conf -dt \
     -e /data/misc/wifi/entropy.bin
     class main
