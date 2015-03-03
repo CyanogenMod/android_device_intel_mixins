@@ -14,8 +14,5 @@ SF_VSYNC_EVENT_PHASE_OFFSET_NS := 5000000
 TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS := true
 
 ADDITIONAL_DEFAULT_PROPERTIES += \
-	persist.intel.ogl.username=Developer \
-	persist.intel.ogl.debug=/data/ufo.prop \
-	persist.intel.ogl.dumpdebugvars=1 \
 	ro.ufo.use_coreu=1
 
