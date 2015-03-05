@@ -18,6 +18,7 @@ BOARD_SEPOLICY_UNION := \
     genfs_contexts \
     gpsd.te \
     hdcpd.te \
+    hostapd.te \
     init.te \
     kernel.te \
     keymaster.te \
