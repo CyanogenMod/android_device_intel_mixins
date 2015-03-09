@@ -170,6 +170,7 @@ def validate_selections(selections, mixin_tree, verbose=False):
         for k, v in defaults.iteritems():
             if k not in params:
                 params[k] = v
+        coerce_boolean(params)
         returned_selections.append((group, option, params))
 
     # The spec file may have omitted some groups. If so, pull in their
@@ -181,8 +182,9 @@ def validate_selections(selections, mixin_tree, verbose=False):
             if verbose:
                 policy_error("group {} doesn't have a default option!".format(group))
         else:
-            returned_selections.append((group, "default",
-                    ReadTrackingDict(mixin_tree[group]["options"]["default"]["defaults"])))
+            params = mixin_tree[group]["options"]["default"]["defaults"]
+            coerce_boolean(params)
+            returned_selections.append((group, "default", ReadTrackingDict(params)))
 
     if verbose:
         warning("default groups used: " + " ".join(default_groups))
