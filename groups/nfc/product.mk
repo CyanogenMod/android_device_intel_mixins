@@ -6,8 +6,11 @@ PRODUCT_COPY_FILES += \
 # Common NFC packages
 PRODUCT_PACKAGES += \
     NfcNci
-# Tag application may be also included with GMS package
-ifneq ($(FLAG_GMS_AVAILABLE),yes)
+
+ifeq ($(FLAG_GMS_AVAILABLE),yes)
+PRODUCT_PACKAGES += \
+    TagGoogle
+else
 PRODUCT_PACKAGES += \
     Tag
 endif
