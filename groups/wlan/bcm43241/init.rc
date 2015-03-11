@@ -54,6 +54,9 @@ service iprenew_p2p /system/bin/dhcpcd -n
     disabled
     oneshot
 
+on post-fs
+    restorecon_recursive /config/wifi
+
 on post-fs-data
     start wlan_prov
     wait /config/wifi/mac.txt

@@ -42,4 +42,5 @@ BOARD_SEPOLICY_UNION := \
     untrusted_app.te \
     userfastboot.te \
     vold.te \
+    wlan_prov.te \
     wpa.te
