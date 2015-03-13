@@ -1,0 +1,12 @@
+service sensorhubd /system/bin/sensorhubd
+    class main
+    user root
+    group root
+    socket sensorhubd stream 600 system system
+
+on boot
+    insmod /system/lib/modules/heci.ko
+    insmod /system/lib/modules/heci-ish.ko
+    insmod /system/lib/modules/hid-heci-ish.ko
+    insmod /system/lib/modules/sens-col-core.ko
+    insmod /system/lib/modules/hid-sensor-hub.ko
