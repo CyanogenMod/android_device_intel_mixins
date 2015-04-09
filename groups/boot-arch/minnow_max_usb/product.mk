@@ -1,1 +1,0 @@
-../efi/product.mk
