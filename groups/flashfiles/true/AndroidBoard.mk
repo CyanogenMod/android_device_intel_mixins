@@ -31,4 +31,4 @@ $(provdata_zip): \
 	$(hide) zip -qj $@ $(ff_root)/*
 
 INSTALLED_RADIOIMAGE_TARGET += $(provdata_zip)
-
+INSTALLED_RADIOIMAGE_TARGET += $(PRODUCT_OUT)/keystore-testkey.bin
